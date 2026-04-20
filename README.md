@@ -29,10 +29,10 @@ The results of a profile run will provide information needed to support an Autho
 | Version | Contents |
 |---------|----------|
 | 0.1.0 | Repo scaffolding, empty `controls/`, design pinned |
-| 0.2.0 | `saf generate delta` output committed, 187 controls populated (mix of RHEL9 carry-forward + AL2023 stubs) |
-| 0.3.0 | Clean compile: `inspec check` + `rubocop` pass |
-| 0.4.0 | Vanilla EC2 kitchen run succeeds; `vanilla.threshold.yml` pinned |
-| 0.5.0 | `docs/al2023-vs-rhel9-diff.md` committed (hdf-libs structural diff) |
+| 0.2.0 | `docs/al2023-vs-rhel9-diff.md` committed (structural baseline diff) |
+| 0.3.0 | `saf generate delta` output committed, 187 controls populated; `inspec check` + `rubocop` clean |
+| 0.4.0 | Adaptation of the non-strong-match controls complete; profile still `check`/`rubocop` clean |
+| 0.5.0 | Vanilla EC2 kitchen run succeeds; `vanilla.threshold.yml` pinned |
 | 0.6.0 | GitHub Actions CI: check + lint on every PR, scheduled kitchen-ec2 |
 | 1.0.0 | Hardening integration + hardened threshold |
 
