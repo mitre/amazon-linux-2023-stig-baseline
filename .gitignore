@@ -82,3 +82,6 @@ kitchen.local.ec2.yml
 .dolt/
 *.db
 .beads-credential-key
+
+# Claude/planning artifacts — not for public repo yet
+.local/
