@@ -1,0 +1,52 @@
+control 'SV-283442' do
+  title 'The Amazon Linux 2023 SSH client must be configured to use only DOD-approved encryption ciphers employing FIPS 140-3-validated cryptographic hash algorithms to protect the confidentiality of SSH client connections.'
+  desc 'Without cryptographic integrity protections, information can be altered by unauthorized users without detection. 
+
+Remote access (e.g., RDP) is access to DOD nonpublic information systems by an authorized user (or an information system) communicating through an external, nonorganization-controlled network. Remote access methods include, for example, dial-up, broadband, and wireless. 
+
+Cryptographic mechanisms used for protecting the integrity of information include, for example, signed hash functions using asymmetric cryptography, enabling distribution of the public key to verify the hash information while maintaining the confidentiality of the secret key used to generate the hash. 
+
+Amazon Linux 2023 incorporates systemwide crypto policies by default. The SSH configuration file has no effect on the ciphers, MACs, or algorithms unless specifically defined in the /etc/sysconfig/sshd file. The employed algorithms can be viewed in the /etc/crypto-policies/back-ends/openssh.config file.'
+  desc 'check', 'Verify the Amazon Linux 2023 SSH client is configured to use only ciphers employing FIPS 140-3-approved algorithms.
+
+To verify the ciphers in the systemwide SSH configuration file, use the following command:
+
+$ grep -i Ciphers /etc/crypto-policies/back-ends/openssh.config 
+
+Ciphers aes256-gcm@openssh.com,aes256-ctr,aes128-gcm@openssh.com,aes128-ctr
+
+If the cipher entries in the "openssh.config" file have any ciphers other than "aes256-gcm@openssh.com,aes256-ctr,aes128-gcm@openssh.com,aes128-ctr", or they are missing or commented out, this is a finding.'
+  desc 'fix', 'Configure the Amazon Linux 2023 SSH client to use only ciphers employing FIPS 140-3-approved algorithms.
+
+Reinstall crypto-policies with the following command:
+
+$ sudo dnf -y reinstall crypto-policies
+
+Set the crypto-policy to FIPS with the following command:
+
+$ sudo update-crypto-policies --set FIPS
+
+Setting system policy to FIPS
+
+Note: Systemwide crypto policies are applied on application startup. It is recommended to restart the system for the change of policies to fully take place.'
+  impact 0.7
+  tag check_id: 'C-88007r1190699_chk'
+  tag severity: 'high'
+  tag gid: 'V-283442'
+  tag rid: 'SV-283442r1192640_rule'
+  tag stig_id: 'AZLX-23-001206'
+  tag gtitle: 'SRG-OS-000250-GPOS-00093'
+  tag fix_id: 'F-87912r1192639_fix'
+  tag 'documentable'
+  tag cci: ['CCI-001453']
+  tag nist: ['AC-17 (2)']
+
+  only_if('Control not applicable - SSH is not installed within containerized RHEL', impact: 0.0) {
+    !virtualization.system.eql?('docker') || file('/etc/ssh/sshd_config').exist?
+  }
+
+  describe file('/etc/crypto-policies/back-ends/openssh.config') do
+    it { should exist }
+    its('content') { should match(/^\s*Ciphers\s+aes256-gcm@openssh\.com,aes256-ctr,aes128-gcm@openssh\.com,aes128-ctr\s*$/) }
+  end
+end

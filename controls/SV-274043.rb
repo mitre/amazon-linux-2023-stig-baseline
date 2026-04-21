@@ -1,0 +1,69 @@
+control 'SV-274043' do
+  title 'Amazon Linux 2023 SSH server must be configured to use only Message Authentication Codes (MACs) employing FIPS 140-2/140-3 validated cryptographic hash algorithms to protect the confidentiality of SSH server connections.'
+  desc 'Without cryptographic integrity protections, information can be altered by unauthorized users without detection.
+
+Remote access (e.g., RDP) is access to DOD nonpublic information systems by an authorized user (or an information system) communicating through an external, nonorganization-controlled network. Remote access methods include, for example, dial-up, broadband, and wireless.
+
+Cryptographic mechanisms used for protecting the integrity of information include, for example, signed hash functions using asymmetric cryptography enabling distribution of the public key to verify the hash information while maintaining the confidentiality of the secret key used to generate the hash.
+
+Amazon Linux 2023 incorporates systemwide crypto policies by default. The SSH configuration file has no effect on the ciphers, MACs, or algorithms unless specifically defined in the /etc/sysconfig/sshd file. The employed algorithms can be viewed in the /etc/crypto-policies/back-ends/opensshserver.config file.'
+  desc 'check', 'Verify Amazon Linux 2023 SSH server is configured to use only MACs employing FIPS 140-2/140-3 approved algorithms.
+
+To verify the MACs in the systemwide SSH configuration file, use the following command:
+
+$ sudo grep -i MACs /etc/crypto-policies/back-ends/opensshserver.config
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512
+
+If the MACs entries in the "opensshserver.config" file have any hashes other than "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512", or they are missing or commented out, this is a finding.'
+  desc 'fix', 'Configure Amazon Linux 2023 so that the SSH server uses only MACs employing FIPS 140-2/140-3 approved algorithms.
+
+Reinstall crypto-policies with the following command:
+
+$ sudo dnf -y reinstall crypto-policies
+
+Set the crypto-policy to FIPS with the following command:
+
+$ sudo update-crypto-policies --set FIPS
+Setting system policy to FIPS
+
+Note: Systemwide crypto policies are applied on application startup. It is recommended to restart the system for the change of policies to fully take place.'
+  impact 0.7
+  tag severity: 'high'
+  tag gtitle: 'SRG-OS-000250-GPOS-00093'
+  tag satisfies: ['SRG-OS-000250-GPOS-00093', 'SRG-OS-000393-GPOS-00173', 'SRG-OS-000394-GPOS-00174', 'SRG-OS-000125-GPOS-00065']
+  tag gid: 'V-274043'
+  tag rid: 'SV-274043r1184014_rule'
+  tag stig_id: 'AZLX-23-001210'
+  tag fix_id: 'F-78039r1120116_fix'
+  tag cci: ['CCI-001453']
+  tag nist: ['AC-17 (2)']
+  tag 'host'
+  tag 'container-conditional'
+
+  # NOTE: This requirement as written is mutually exclusive with SV-257990.
+  #
+  # The STIG baseline calls for two different values for the MACs option in the openssh.config file.
+  #
+  # We assume that the requirements for OpenSSH *server* should be checking the
+  # values in the opensshserver.conf file (as opposed to openssh.conf for client),
+  # and these tests has been written accordingly.
+  #
+  # This means that test logic may not match the STIG check text at this time.
+
+  only_if('Control not applicable - SSH is not installed within containerized RHEL', impact: 0.0) {
+    !(virtualization.system.eql?('docker') && !file('/etc/sysconfig/sshd').exist?)
+  }
+
+  approved_macs = input('approved_openssh_server_conf')['macs']
+
+  options = { assignment_regex: /^(\S+)\s+(\S+)$/ }
+  opensshserver_conf = parse_config_file('/etc/crypto-policies/back-ends/opensshserver.config', options).params.to_h { |k, v| [k.downcase, v.split(',')] }
+
+  actual_macs = opensshserver_conf['macs'].join(',')
+
+  describe 'OpenSSH server configuration' do
+    it 'implement approved MACs' do
+      expect(actual_macs).to eq(approved_macs), "OpenSSH server cipher configuration actual value:\n\t#{actual_macs}\ndoes not match the expected value:\n\t#{approved_macs}"
+    end
+  end
+end
