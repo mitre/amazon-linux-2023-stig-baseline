@@ -83,5 +83,7 @@ kitchen.local.ec2.yml
 *.db
 .beads-credential-key
 
-# Claude/planning artifacts — not for public repo yet
-.local/
+# Beads recovery files (local session state — never share)
+.beads/recovery-context.md
+.beads/recovery-prompt.md
+.beads/archive/

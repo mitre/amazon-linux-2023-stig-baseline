@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 # !/usr/bin/env rake
 
 require 'rake/testtask'
 require 'rubocop/rake_task'
 
 namespace :inspec do
-  desc 'validate the inspec profile'
+  desc 'validate the profile'
   task :check do
-    system 'bundle exec inspec check .'
+    system 'bundle exec cinc-auditor check .'
   end
 end
 
