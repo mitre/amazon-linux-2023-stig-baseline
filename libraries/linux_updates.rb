@@ -210,18 +210,18 @@ end
 
 class RHELUpdateFetcher < UpdateFetcher
   def packages
-    rhel_packages = <<~PRINT_JSON
+    rpm_packages = <<~PRINT_JSON
       sleep 2 && echo " "
       echo -n '{"installed":['
       rpm -qa --queryformat '"name":"%{NAME}","version":"%{VERSION}-%{RELEASE}","arch":"%{ARCH}"\\n' |\\
         awk '{ printf "{"$1"}," }' | rev | cut -c 2- | rev | tr -d '\\n'
       echo -n ']}'
     PRINT_JSON
-    parse_json(rhel_packages)
+    parse_json(rpm_packages)
   end
 
   def updates
-    rhel_updates =
+    rpm_updates =
       if @inspec.os.release.to_i > 7
         <<~PRINT_JSON
           #!/usr/bin/sh
@@ -233,7 +233,7 @@ class RHELUpdateFetcher < UpdateFetcher
           python -c 'import sys; sys.path.insert(0, "/usr/share/yum-cli"); import cli; ybc = cli.YumBaseCli(); ybc.setCacheDir("/tmp"); list = ybc.returnPkgLists(["updates"]);res = ["{\\"name\\":\\""+x.name+"\\",\\"version\\":\\""+x.version+"-"+x.release+"\\",\\"arch\\":\\""+x.arch+"\\",\\"repository\\":\\""+x.repo.id+"\\"}" for x in list.updates]; print "{\\"available\\":["+",".join(res)+"]}"'
         PRINT_JSON
       end
-    cmd = @inspec.bash(rhel_updates)
+    cmd = @inspec.bash(rpm_updates)
     unless cmd.exit_status.zero?
       # essentially we want https://github.com/chef/inspec/issues/1205
       warn 'Could not determine patch status.'
