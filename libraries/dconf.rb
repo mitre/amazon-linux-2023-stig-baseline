@@ -99,8 +99,14 @@ module Inspec::Resources
       @dconf_db_path = dconf_db_path
       @dconf_profile_path = dconf_profile_path
 
-      # Guard clause with early return (Ruby best practice)
-      return skip_resource "dconf not available - GNOME desktop environment not detected" unless dconf_available?
+      # Raise rather than `return skip_resource` so every subsequent property
+      # accessor short-circuits cleanly — the old pattern would leave caches
+      # as nil and report empty data as if dconf were simply unconfigured.
+      # Matches the InSpec core convention (see `package.rb:53`).
+      unless dconf_available?
+        raise Inspec::Exceptions::ResourceSkipped,
+              "dconf not available - GNOME desktop environment not detected"
+      end
 
       super()
     end
@@ -129,6 +135,14 @@ module Inspec::Resources
       @profile_cache ||= detect_active_profile
     end
 
+    # True only when a real dconf profile file exists on the target. Used as a
+    # meaningful guard in the `has_*_configured?` predicates — `active_profile`
+    # itself always returns a string (falls back to "local"), so it isn't
+    # useful as a boolean.
+    def profile_configured?
+      inspec.file(@dconf_profile_path).exist?
+    end
+
     private
 
     def detect_active_profile
@@ -151,10 +165,18 @@ module Inspec::Resources
     end
 
     def available_databases
-      cmd = inspec.command("find #{@dconf_db_path}/ -maxdepth 1 -type f 2>/dev/null")
-      return [] if cmd.exit_status != 0
+      # Enumerate both compiled binary databases AND their source directories
+      # (`<db>.d`). Relying on compiled files alone silently hides a system
+      # that has applied source keyfiles but never run `dconf update` — STIG
+      # scans would pass vacuously against a broken policy.
+      compiled = inspec.command("find #{@dconf_db_path}/ -maxdepth 1 -type f 2>/dev/null")
+      sources  = inspec.command("find #{@dconf_db_path}/ -maxdepth 1 -type d -name '*.d' 2>/dev/null")
 
-      cmd.stdout.lines.map { |line| File.basename(line.strip) }.sort
+      names = []
+      names.concat(compiled.stdout.lines.map { |l| File.basename(l.strip) }) if compiled.exit_status == 0
+      names.concat(sources.stdout.lines.map { |l| File.basename(l.strip).sub(/\.d$/, '') }) if sources.exit_status == 0
+
+      names.reject(&:empty?).uniq.sort
     end
 
     # Lock validation methods
@@ -196,7 +218,7 @@ module Inspec::Resources
 
     # Natural language boolean matchers (building blocks)
     def has_policy_configured?
-      !available_databases.empty? && active_profile
+      !available_databases.empty? && profile_configured?
     end
 
     def has_administrative_locks?
@@ -204,7 +226,7 @@ module Inspec::Resources
     end
 
     def has_database_consistency?
-      has_databases_compiled? && active_profile
+      has_databases_compiled? && profile_configured?
     end
 
     def has_setting_locked?(schema, key)
@@ -262,8 +284,9 @@ module Inspec::Resources
       available_databases.each do |database|
         database_path = "#{@dconf_db_path}/#{database}"
 
-        # Get settings from database directory
-        settings_cmd = inspec.command("find #{database_path}.d/ -name '*.conf' -o -name '*.d' 2>/dev/null | xargs grep -h '^\\[\\|^[^#]' 2>/dev/null")
+        # Get settings from database directory (files only — avoids passing
+        # matching subdirectories to grep, which produces suppressed errors).
+        settings_cmd = inspec.command("find #{database_path}.d/ -type f -name '*.conf' 2>/dev/null | xargs -r grep -h '^\\[\\|^[^#]' 2>/dev/null")
 
         if settings_cmd.exit_status == 0
           parse_dconf_settings(settings_cmd.stdout, database)
@@ -281,8 +304,10 @@ module Inspec::Resources
       available_databases.each do |database|
         locks_path = "#{@dconf_db_path}/#{database}.d/locks"
 
-        # Get lock files
-        locks_cmd = inspec.command("find #{locks_path}/ -type f 2>/dev/null | xargs cat 2>/dev/null")
+        # Get lock files (`xargs -r` skips running cat when find returns
+        # nothing — otherwise cat would read stdin on databases with no
+        # locks/ directory).
+        locks_cmd = inspec.command("find #{locks_path}/ -type f 2>/dev/null | xargs -r cat 2>/dev/null")
 
         if locks_cmd.exit_status == 0
           parse_lock_files(locks_cmd.stdout, database)
@@ -391,14 +416,41 @@ module Inspec::Resources
     end
 
     def database_compiled?(database)
-      # Check if database file is newer than source directory
+      # Check if compiled database is at least as recent as every source keyfile.
+      # Comparing against the directory mtime alone misses in-place edits —
+      # editing an existing keyfile without adding or removing entries does not
+      # update the parent directory's mtime, so a stale compiled db would
+      # incorrectly be reported as compiled.
       db_file = "/etc/dconf/db/#{database}"
       db_dir = "/etc/dconf/db/#{database}.d"
 
       return false unless inspec.file(db_file).exist?
       return true unless inspec.file(db_dir).exist?  # No source dir means compiled is fine
 
-      inspec.file(db_file).mtime >= inspec.file(db_dir).mtime
+      # Coerce to Integer — Train's file backend returns epoch Integer on
+      # Linux today, but coercing guards against a future backend that yields
+      # a Time object and raises ArgumentError when compared to an Integer.
+      db_mtime = inspec.file(db_file).mtime.to_i
+
+      # `-printf '%T@'` is a GNU findutils extension. Present on every target
+      # distro in scope for this profile (RHEL, Amazon, Oracle, CentOS, Rocky,
+      # Alma, Fedora, SUSE, Debian, Ubuntu). BusyBox-based systems (Alpine,
+      # minimal containers) lack it — detect that case and fall back to the
+      # coarser directory-mtime check rather than silently reporting the
+      # database as compiled when we actually know nothing.
+      cmd = inspec.command("find #{db_dir} -type f -printf '%T@\\n' 2>/dev/null | sort -n | tail -1")
+
+      if cmd.exit_status != 0
+        # GNU find not available — fall back to directory mtime. Misses
+        # in-place edits (see method docstring) but is better than assuming
+        # "compiled" blindly.
+        return db_mtime >= inspec.file(db_dir).mtime.to_i
+      end
+
+      return true if cmd.stdout.strip.empty?  # No source files → nothing to be stale against
+
+      max_source_mtime = cmd.stdout.strip.to_f.to_i
+      db_mtime >= max_source_mtime
     end
 
     def clean_schema_name(schema_name)
@@ -407,7 +459,9 @@ module Inspec::Resources
     end
 
     def dconf_available?
-      cmd = inspec.command('which dconf')
+      # `command -v` is a POSIX shell builtin; `which` is not POSIX and is
+      # missing on some minimal container images (e.g. SUSE BCI, Alpine).
+      cmd = inspec.command('command -v dconf >/dev/null 2>&1')
       cmd.exit_status == 0
     end
   end
