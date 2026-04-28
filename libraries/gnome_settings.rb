@@ -141,7 +141,9 @@ module Inspec::Resources
       end
     EXAMPLE
 
-    attr_reader :schema_filter, :settings_cache, :settings_mash, :parsed_data
+    # `parsed_data` has a custom memoizing reader defined later in this class,
+    # so it is intentionally omitted from this attr_reader list.
+    attr_reader :schema_filter, :settings_cache, :settings_mash
 
     def initialize(schema_filter = nil)
       @schema_filter = clean_schema_name(schema_filter) if schema_filter
@@ -149,9 +151,13 @@ module Inspec::Resources
       @settings_mash = nil
       @parsed_data = nil
 
-      # Check if gsettings is available
+      # Raise rather than `return skip_resource` so every subsequent property
+      # accessor short-circuits cleanly — the old pattern would leave caches
+      # as nil and report empty data as if gsettings were simply unconfigured.
+      # Matches the InSpec core convention (see `package.rb:53`).
       unless gsettings_available?
-        return skip_resource "gsettings not available - GNOME desktop environment not detected"
+        raise Inspec::Exceptions::ResourceSkipped,
+              "gsettings not available - GNOME desktop environment not detected"
       end
 
       super()
@@ -520,33 +526,74 @@ module Inspec::Resources
 
     def parse_gvariant_value(value)
       case value
-      when /^'([^']*)'$/  # String: 'value'
-        $1
+      when /^'((?:[^'\\]|\\.)*)'$/  # Single-quoted string: 'value' (with escapes)
+        unescape_gvariant_string($1)
       when /^true$|^false$/  # Boolean
         value == 'true'
-      when /^uint32 (\d+)$/  # uint32 integer - preserve type info
+      when /^uint32\s+(\d+)$/  # uint32 integer - preserve type info
         $1.to_i
-      when /^int32 (-?\d+)$/  # int32 integer
+      when /^int32\s+(-?\d+)$/  # int32 integer
         $1.to_i
-      when /^uint64 (\d+)$/  # uint64 integer
+      when /^uint64\s+(\d+)$/  # uint64 integer
         $1.to_i
-      when /^double (\d+\.?\d*)$/  # double float
+      when /^double\s+(-?\d+\.?\d*)$/  # double float
         $1.to_f
-      when /^\d+$/  # Plain integer
+      when /^-?\d+$/  # Plain integer
         value.to_i
-      when /^\d+\.\d+$/  # Plain float
+      when /^-?\d+\.\d+$/  # Plain float
         value.to_f
-      when /^\[.*\]$/  # Array
-        begin
-          JSON.parse(value.gsub("'", '"'))
-        rescue
-          value
-        end
+      when /^\[.*\]$/  # Array of strings — e.g. ['a', 'b'] or ['']
+        parse_gvariant_string_array(value)
       else
         value
       end
     rescue
       value
+    end
+
+    # Parse a gvariant-style string array such as `['a', 'b', '']` or `[]`
+    # without the naive `gsub("'", '"') + JSON.parse` dance — that breaks on
+    # any escaped apostrophe (e.g. `['don\'t']`) and on embedded double
+    # quotes. This scans character-by-character, respecting `\'` and `\\`.
+    def parse_gvariant_string_array(literal)
+      body = literal.strip
+      return literal unless body.start_with?('[') && body.end_with?(']')
+
+      inner = body[1..-2].strip
+      return [] if inner.empty?
+
+      result = []
+      buf = +''
+      in_string = false
+      escape = false
+
+      inner.each_char do |ch|
+        if escape
+          buf << ch
+          escape = false
+        elsif ch == '\\' && in_string
+          escape = true
+        elsif ch == "'"
+          in_string = !in_string
+          if !in_string
+            result << unescape_gvariant_string(buf)
+            buf = +''
+          end
+        elsif in_string
+          buf << ch
+        end
+        # characters outside quotes (commas, whitespace) are separators
+      end
+
+      return literal if in_string  # Unterminated — fall back to raw value
+
+      result
+    end
+
+    def unescape_gvariant_string(str)
+      # gvariant-serialized strings use C-style escapes; only `\\`, `\'`, and
+      # `\"` are relevant for the values gsettings emits for STIG-scoped keys.
+      str.gsub(/\\(.)/) { $1 }
     end
 
     def determine_type(value)
@@ -561,15 +608,18 @@ module Inspec::Resources
     end
 
     def gsettings_available?
-      cmd = inspec.command('which gsettings')
+      # Prefer POSIX `command -v` over non-POSIX `which` — `which` is missing
+      # on minimal containers and some embedded images.
+      cmd = inspec.command('command -v gsettings >/dev/null 2>&1')
       cmd.exit_status == 0
     end
 
     # Integration with dconf resource for lock checking (proper Ruby/InSpec way)
     def dconf_setting_locked?(schema, key)
-      # Delegate to dconf resource instead of manual file parsing
-      dconf_resource = Dconf.new(schema)
-      dconf_resource.has_locked?(key)
+      # Go through the InSpec resource registry so the backend context is
+      # wired up correctly — `Dconf.new(...)` would bypass that and rely on
+      # the rescue below to silently mask the failure.
+      inspec.dconf(schema).has_locked?(key)
     rescue
       false  # Graceful fallback if dconf not available
     end
