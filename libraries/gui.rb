@@ -20,6 +20,10 @@ module Inspec::Resources
     attr_reader :implementation
 
     def initialize
+      # Match the InSpec core convention (see inspec-core `package.rb`): raise
+      # ResourceSkipped on unsupported platforms so every property accessor
+      # short-circuits at the resource boundary. `return skip_resource` would
+      # leave `@implementation` nil and NoMethodError any later delegator call.
       @implementation = case inspec.os.family
                        when 'redhat', 'fedora', 'debian', 'suse', 'arch', 'linux'
                          LinuxGui.new(inspec)
@@ -28,7 +32,8 @@ module Inspec::Resources
                        when 'darwin'
                          DarwinGui.new(inspec)
                        else
-                         return skip_resource "GUI detection not supported on #{inspec.os.family}"
+                         raise Inspec::Exceptions::ResourceSkipped,
+                               "GUI detection not supported on #{inspec.os.family}"
                        end
     end
 
@@ -133,20 +138,34 @@ module Inspec::Resources
         gui_packages: []
       }
 
-      # Common GUI packages to check
+      # GUI package markers across RHEL-family (Amazon/Oracle/Rocky/Alma),
+      # Fedora, SUSE, and Debian/Ubuntu. Package naming diverges the most
+      # for KDE Plasma (different prefix per distro) and the modern LXQt
+      # fork of LXDE.
       gui_package_map = {
-        'gnome-shell' => 'gnome',
-        'gnome-desktop3' => 'gnome',
-        'gnome-desktop4' => 'gnome',
-        'gdm' => 'gnome',
-        'plasma-desktop' => 'kde',
-        'kde-workspace' => 'kde',
-        'sddm' => 'kde',
-        'xfce4-session' => 'xfce',
-        'lightdm' => 'lightdm',
-        'lxde-common' => 'lxde',
-        'mate-desktop' => 'mate',
-        'cinnamon' => 'cinnamon'
+        # GNOME — consistent name across all target distros
+        'gnome-shell'                 => 'gnome',
+        'gnome-session'               => 'gnome',
+        'gdm'                         => 'gnome',
+        # KDE Plasma — multiple names for historical/distro reasons
+        'plasma-workspace'            => 'kde',  # RHEL/Fedora, Debian (newer)
+        'plasma5-workspace'           => 'kde',  # openSUSE Leap (Plasma 5)
+        'plasma6-workspace'           => 'kde',  # openSUSE Tumbleweed (Plasma 6)
+        'plasma-desktop'              => 'kde',  # Debian/Ubuntu meta
+        'kde-workspace'               => 'kde',  # legacy KDE 4 (still present on some older systems)
+        'sddm'                        => 'kde',
+        # XFCE
+        'xfce4-session'               => 'xfce',
+        'lightdm'                     => 'lightdm',
+        # LXDE / LXQt (modern fork)
+        'lxde-common'                 => 'lxde',
+        'lxqt-session'                => 'lxqt',
+        # MATE — Fedora/RHEL/SUSE use `mate-desktop`, Debian uses the meta pkg
+        'mate-desktop'                => 'mate',
+        'mate-desktop-environment'    => 'mate',
+        # Cinnamon — upstream name works on Fedora/Debian; SUSE adds -desktop
+        'cinnamon'                    => 'cinnamon',
+        'cinnamon-desktop'            => 'cinnamon'
       }
 
       installed_packages = []
