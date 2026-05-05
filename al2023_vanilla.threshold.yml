@@ -1,0 +1,6 @@
+---
+# SAF CLI threshold gate for the vanilla AL2023 container scan.
+# Set very low — the vanilla image is not expected to be compliant.
+# We only fail CI if the profile errored out across the board.
+error.total.max: 0
+compliance.min: 1

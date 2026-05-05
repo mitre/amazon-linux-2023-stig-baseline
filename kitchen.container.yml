@@ -1,0 +1,31 @@
+---
+# Test-Kitchen container suites for the AL2023 STIG profile.
+# Driven by the dokken driver — see https://kitchen.ci/docs/drivers/dokken/
+
+provisioner:
+  name: dummy
+
+driver:
+  name: dokken
+  pull_platform_image: false
+
+transport:
+  name: dokken
+
+platforms:
+  - name: al2023
+
+suites:
+  - name: vanilla
+    driver:
+      image: <%= ENV['VANILLA_CONTAINER_IMAGE'] || "amazonlinux:2023" %>
+    verifier:
+      input_files:
+        - container.vanilla.inputs.yml
+  - name: hardened
+    driver:
+      image: <%= ENV['HARDENED_CONTAINER_IMAGE'] || "registry1.dso.mil/ironbank/opensource/amazon/amazonlinux2023:2023" %>
+    verifier:
+      input_files:
+        - container.hardened.inputs.yml
+      # creds_file: './creds.json'
