@@ -60,11 +60,11 @@ jobs:
       - name: Bundle install
         run: bundle install
 
-      - name: Print InSpec version
-        run: bundle exec inspec version
+      - name: Print CINC Auditor version
+        run: bundle exec cinc-auditor version
 
       - name: Vendor the profile
-        run: bundle exec inspec vendor . --overwrite
+        run: bundle exec cinc-auditor vendor . --overwrite
 
       - name: Run kitchen test against ${{ matrix.suite }}
         continue-on-error: true
