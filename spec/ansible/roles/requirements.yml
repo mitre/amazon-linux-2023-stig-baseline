@@ -1,0 +1,11 @@
+---
+roles:
+  - name: AMAZON2023-CIS
+    src: https://github.com/ansible-lockdown/AMAZON2023-CIS
+    scm: git
+    version: main
+
+collections:
+  - name: community.general
+  - name: community.crypto
+  - name: ansible.posix

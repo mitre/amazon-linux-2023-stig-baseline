@@ -1,0 +1,9 @@
+---
+- name: AL2023 CIS hardening via ansible-lockdown/AMAZON2023-CIS
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    amzn2023cis_rule_4_6_6: false
+  roles:
+    - AMAZON2023-CIS
