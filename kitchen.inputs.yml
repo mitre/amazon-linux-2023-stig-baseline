@@ -1,0 +1,11 @@
+---
+# Global InSpec inputs applied across every kitchen suite.
+# Per-suite overrides live in container.<suite>.inputs.yml, ec2.<suite>.inputs.yml, etc.
+# Add inputs here only when they should hold for *all* suites. Per-suite values
+# (e.g. allow_container_openssh_server in the container suites) belong in the
+# corresponding suite inputs file.
+
+disable_slow_controls: false
+data_at_rest_exempt: false
+smart_card_enabled: false
+external_firewall: false

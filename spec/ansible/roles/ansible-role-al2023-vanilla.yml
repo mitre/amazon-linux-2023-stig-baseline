@@ -1,0 +1,8 @@
+---
+- name: AL2023 vanilla baseline (no hardening applied)
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Verify connectivity to the target
+      ansible.builtin.ping:
