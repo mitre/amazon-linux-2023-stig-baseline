@@ -20,4 +20,20 @@ Remove any occurrences of "pam_succeed_if " in the "/etc/pam.d/sudo" file.'
   tag 'documentable'
   tag cci: ['CCI-002165']
   tag nist: ['AC-3 (4)']
+  tag 'host'
+
+  only_if('Control not applicable within a container', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  pam_string = 'pam_succeed_if'
+  pam_file = '/etc/pam.d/sudo'
+
+  pam_rules_check = command("grep #{pam_string} #{pam_file}").stdout.strip.split("\n")
+
+  describe 'PAM rules' do
+    it "should not include an instance of #{pam_string} in #{pam_file}" do
+      expect(pam_rules_check).to be_empty, "Failed PAM rules in #{pam_file}:\n\t- #{pam_rules_check.join("\n\t- ")}"
+    end
+  end
 end

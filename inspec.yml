@@ -32,3 +32,565 @@ inspec_version: ">= 5.0"
 ###
 
 inputs:
+
+  # SV-273994
+  - name: data_at_rest_exempt
+    description: "'(boolean) Set to true if the system is exempt from using Data at Rest"
+    type: Boolean
+    value: false
+
+  # SV-273994
+  - name: luks_exceptions
+    description: List of block devices/partitions that are permitted to be unencrypted
+    type: Array
+    value: []
+
+  # SV-273995
+  - name: rpm_gpg_file
+    description: Red Hat uses GPG keys labels defined in file
+    type: String
+    value: /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+  # SV-273995
+  - name: rpm_gpg_keys
+    description: Red Hat uses GPG keys labels with matching fingerprints
+    type: Hash
+    value:
+      "release key 2": "567E 347A D004 4ADE 55BA  8A5F 199E 2F91 FD43 1D51"
+      "auxiliary key": "7E46 2425 8C40 6535 D56D  6F13 5054 E4A4 5A63 40B3"
+
+  # SV-274004
+  - name: ipv4_enabled
+    description: Set to 'true' if IPv4 is enabled on the system.
+    type: Boolean
+    value: true
+
+  # SV-274007
+  - name: ftp_required
+    description: Set to true if there is a documented requirement for the target system to use FTP
+    type: Boolean
+    value: false
+
+  # SV-274014, SV-274015, SV-274016
+  - name: sudoers_config_files
+    description: 'The files and directories you keep your sudoers configs'
+    type: Array
+    value:
+      - '/etc/sudoers'
+      - '/etc/sudoers.d/*'
+
+  # SV-274020
+  - name: audit_flush_threshold
+    description: Threshold at which the audit system should flush the audit logs to disk
+    type: Numeric
+    value: 100
+
+  # SV-274024, SV-274025
+  - name: file_integrity_tool
+    description: Name of tool
+    type: String
+    value: "aide"
+
+  # SV-274027
+  - name: alternate_firewall_tool
+    description: Alternate firewall tool (other than firewalld) in use for the system - leave blank if using default OS tools
+    type: String
+    value: ""
+
+  # SV-274028
+  - name: external_firewall
+    description: "The system use an external firewall or service vs a local firewall service"
+    type: Boolean
+    value: false
+
+  # SV-274031
+  - name: mail_package
+    description: Command that is used to send email messages
+    type: String
+    value: s-nail
+
+  # SV-274032
+  - name: libreswan_required
+    description: Set to false if there is no operational requirement for the libreswan package as per instructions in SV-274032
+    type: Boolean
+    value: true
+
+  # SV-274034, SV-274036, SV-274059, SV-274063, SV-274181
+  - name: smart_card_enabled
+    description: Set to true if smart cards are enabled for the system
+    type: Boolean
+    value: false
+
+  # SV-274037
+  - name: alternate_mfa_method
+    description: Name of the MFA method in place on the system (leave blank if using the default SSSD, give the name if using an approved alternate method)
+    type: String
+    value: ''
+
+  # SV-274037
+  - name: sssd_certificate_verification
+    description: Certificate status checking for multifactor authentication.
+    type: String
+    value: "ocsp_dgst=sha1"
+
+  # SV-274037, SV-274059
+  - name: sssd_conf_files
+    description: File and directory globs to check for SSSD configuration
+    type: Array
+    value:
+      - /etc/sssd/sssd.conf
+      - /etc/sssd/conf.d/*.conf
+
+  # SV-274038, SV-274044
+  - name: allow_container_openssh_server
+    description: "If the OpenSSH Server has been approved outside standard container guidance to default transprots"
+    type: Boolean
+    value: false
+
+  # SV-274038
+  - name: physical_protections_employed
+    description: "If physical means of protection are employed, then logical means (cryptography) do not have to be employed, and vice versa."
+    type: Boolean
+    value: true
+
+  # SV-274042, SV-274043
+  - name: approved_openssh_server_conf
+    description: Config values expected for openssh server (order matters, so these values are comma-delimited strings and not arrays)
+    type: Hash
+    value:
+      ciphers: aes256-gcm@openssh.com,aes256-ctr,aes128-gcm@openssh.com,aes128-ctr
+      macs: hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,umac-128@openssh.com,hmac-sha2-512
+
+  # SV-274044
+  - name: sshd_config_values
+    description: 'The agreed sshd server config values for the organization'
+    type: Hash
+    value:
+      GSSAPIAuthentication: 'no'
+      ClientAliveInterval: '600'
+
+  # SV-274045
+  - name: kerberos_required
+    description: Set to true if there is a documented requirement for the target system to use Kerberos auth
+    type: Boolean
+    value: false
+
+  # SV-274049
+  - name: permit_root_login
+    description: Whether to permit direct logons to the root account using remote access via SSH
+    type: String
+    value: "no"
+
+  # SV-274050
+  - name: sshd_client_alive_count_max
+    description: all network connections associated with SSH traffic are terminated at the end of the session or after 10 minutes of inactivity
+    type: Numeric
+    value: 1
+  
+  # SV-274051
+  - name: sshd_client_alive_interval
+    description: all network connections associated with SSH traffic are terminated at the end of the session or after 10 minutes of inactivity
+    type: Numeric
+    value: 600
+
+  # SV-274057
+  - name: use_fips
+    description: "'(boolean)' Set to true if the system is required to use FIPS Encryption"
+    type: Boolean
+    value: true
+
+  # SV-274059, SV-274161, SV-274162, SV-274163, SV-274186
+  - name: pam_auth_files
+    description: The pam.d auth paths
+    type: Hash
+    value:
+      system-auth: /etc/pam.d/system-auth
+      password-auth: /etc/pam.d/password-auth
+      smartcard-auth: /etc/pam.d/smartcard-auth
+
+  # SV-274063
+  - name: root_ca_file
+    description: Path to an accepted trust anchor certificate file (DoD)
+    type: Hash
+    value:
+      path: "/etc/sssd/pki/sssd_auth_ca_db.pem" # https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/zip/unclass-certificates_pkcs7_DoD.zip'
+      issuer_dn: '/C=US/O=U.S. Government/OU=DoD/OU=PKI/CN=DoD Root CA 3'
+      subject_dn: '/C=US/O=U.S. Government/OU=DoD/OU=PKI/CN=DoD Root CA 3'
+
+  # SV-274064
+  - name: private_key_files
+    description: List of full paths to private key files on the system
+    type: Array
+    value: []
+
+  # SV-274066
+  - name: banner_message_text_ral
+    description: Banner message text for remote access logins.
+    type: String
+    value:
+      "You are accessing a U.S. Government (USG) Information System (IS) that is \
+      provided for USG-authorized use only. By using this IS (which includes any \
+      device attached to this IS), you consent to the following conditions: -The USG \
+      routinely intercepts and monitors communications on this IS for purposes \
+      including, but not limited to, penetration testing, COMSEC monitoring, network \
+      operations and defense, personnel misconduct (PM), law enforcement (LE), and \
+      counterintelligence (CI) investigations. -At any time, the USG may inspect and \
+      seize data stored on this IS. -Communications using, or data stored on, this \
+      IS are not private, are subject to routine monitoring, interception, and \
+      search, and may be disclosed or used for any USG-authorized purpose. -This IS \
+      includes security measures (e.g., authentication and access controls) to \
+      protect USG interests--not for your personal benefit or privacy. \
+      -Notwithstanding the above, using this IS does not constitute consent to PM, \
+      LE or CI investigative searching or monitoring of the content of privileged \
+      communications, or work product, related to personal representation or \
+      services by attorneys, psychotherapists, or clergy, and their assistants. Such \
+      communications and work product are private and confidential. See User \
+      Agreement for details."
+
+  # SV-274069, SV-274070, SV-274071, SV-274077, SV-274079, SV-274080
+  - name: alternative_logging_method
+    description: Alternative tool for logging (instead of auditd and other built-in OS logging features) - leave blank if using default OS tools
+    type: String
+    value: ""
+
+  # SV-274069, SV-274079, SV-274080
+  - name: logging_conf_files
+    description: Configuration files for the logging service
+    type: Array
+    value:
+      - /etc/rsyslog.conf
+      - /etc/rsyslog.d/*.conf
+
+  # SV-274071
+  - name: audit_storage_threshold
+    description: The percentage threshold of space remaining in the audit storage volume before the system should take action
+    type: Numeric
+    value: 25
+
+  # SV-274073
+  - name: admin_space_left
+    description: The percentage of space left on the audit storage volume that will trigger the system to take action
+    type: String
+    value: "5%"
+
+  # SV-274074
+  - name: admin_space_left_action
+    description: Action the system should take when the audit storage volume is full
+    type: String
+    value: "SINGLE"
+
+  # SV-274075
+  - name: alert_method
+    description: 'The method used to provide real-time information to the ISSO or AO'
+    type: String
+    value: email
+
+  # Default values for expected keynames for all audit rules
+  # NOTE: DO NOT override this hash
+  # If you need to override these values, do so via adding the desired key/value to
+  # the `audit_rule_keynames_overrides` input instead -- overriding `audit_rule_keynames`
+  # directly will lose the values for any key you do not explictly define.
+  # SV-274081, SV-274082, SV-274083, SV-274084, SV-274085, SV-274086, SV-274087, SV-274088, SV-274089, SV-274090, SV-274091, SV-274092, SV-274093, SV-274094, SV-274095, SV-274096, SV-274097, SV-274098, SV-274099, SV-274100, SV-274105, SV-274112, SV-274113, SV-274114, SV-274167
+  - name: audit_rule_keynames
+    description: The audit rules to be applied to the system
+    type: Hash
+    value: {
+      'execve'                        : 'execpriv',
+      '/etc/shadow'                   : 'identity',
+      '/etc/security/opasswd'         : 'identity',
+      '/etc/passwd'                   : 'identity',
+      '/etc/gshadow'                  : 'identity',
+      '/etc/group'                    : 'identity',
+      '/etc/sudoers'                  : 'identity',
+      '/etc/sudoers.d'                : 'identity',
+      '/usr/bin/su'                   : 'privileged-priv_change',
+      'setxattr'                      : 'perm_mod',
+      'fsetxattr'                     : 'perm_mod',
+      'lsetxattr'                     : 'perm_mod',
+      'removexattr'                   : 'perm_mod',
+      'fremovexattr'                  : 'perm_mod',
+      'lremovexattr'                  : 'perm_mod',
+      '/usr/bin/chage'                : 'privileged-chage',
+      '/usr/bin/chcon'                : 'perm_mod',
+      '/usr/bin/ssh-agent'            : 'privileged-ssh',
+      '/usr/bin/passwd'               : 'privileged-passwd',
+      '/usr/bin/mount'                : 'privileged-mount',
+      '/usr/bin/umount'               : 'privileged-mount',
+      'mount'                         : 'privileged-mount',
+      'umount'                        : 'privileged-umount',
+      '/usr/sbin/unix_update'         : 'privileged-unix-update',
+      '/usr/sbin/postdrop'            : 'privileged-unix-update',
+      '/usr/sbin/postqueue'           : 'privileged-unix-update',
+      '/usr/sbin/semanage'            : 'privileged-unix-update',
+      '/usr/sbin/setfiles'            : 'privileged-unix-update',
+      '/usr/sbin/userhelper'          : 'privileged-unix-update',
+      '/usr/sbin/setsebool'           : 'privileged-unix-update',
+      '/usr/sbin/unix_chkpwd'         : 'privileged-unix-update',
+      '/usr/libexec/openssh/ssh-keysign' : 'privileged-ssh',
+      '/usr/bin/setfacl'              : 'perm_mod',
+      '/usr/sbin/pam_timestamp_check' : 'privileged-pam_timestamp_check',
+      '/usr/bin/newgrp'               : 'priv_cmd',
+      'init_module'                   : 'module_chng',
+      'finit_module'                  : 'module_chng',
+      'rename'                        : 'delete',
+      'unlink'                        : 'delete',
+      'rmdir'                         : 'delete',
+      'renameat'                      : 'delete',
+      'unlinkat'                      : 'delete',
+      '/usr/bin/gpasswd'              : 'privileged-gpasswd',
+      'delete_module'                 : 'module_chng',
+      '/usr/bin/crontab'              : 'privileged-crontab',
+      '/usr/bin/chsh'                 : 'priv_cmd',
+      'truncate'                      : 'perm_access',
+      'ftruncate'                     : 'perm_access',
+      'creat'                         : 'perm_access',
+      'open'                          : 'perm_access',
+      'openat'                        : 'perm_access',
+      'open_by_handle_at'             : 'perm_access',
+      'chown'                         : 'perm_mod',
+      'fchown'                        : 'perm_mod',
+      'fchownat'                      : 'perm_mod',
+      'lchown'                        : 'perm_mod',
+      'chmod'                         : 'perm_mod',
+      'fchmod'                        : 'perm_mod',
+      'fchmodat'                      : 'perm_mod',
+      '/usr/bin/sudo'                 : 'priv_cmd',
+      '/usr/sbin/usermod'             : 'privileged-usermod',
+      '/usr/bin/chacl'                : 'perm_mod',
+      '/usr/bin/kmod'                 : 'modules',
+      '/var/log/faillock'             : 'logins',
+      '/var/log/lastlog'              : 'logins',
+      '/usr/bin/sudoedit'             : 'priv_cmd',
+      '/usr/sbin/init'                : 'privileged-init',
+      '/usr/sbin/poweroff'            : 'privileged-poweroff',
+      '/usr/sbin/reboot'              : 'privileged-reboot',
+      '/usr/sbin/shutdown'            : 'privileged-shutdown',
+      'umount2'                       : 'perm_mod',
+      '/var/log/tallylog'             : 'logins'
+    }
+
+  # Override values for expected keynames for all audit rules
+  # Override this hash to change the default values for the audit_rule_keynames
+  # Any keys you do not explictly add to this input will use the default values
+  # as given in `audit_rule_keynames`
+  # Example:
+  # {
+  #   'execve': 'my_org_specific_keyname_for_auditing_execve'
+  # }
+  # SV-274081, SV-274082, SV-274083, SV-274084, SV-274085, SV-274086, SV-274087, SV-274088, SV-274089, SV-274090, SV-274091, SV-274092, SV-274093, SV-274094, SV-274095, SV-274096, SV-274097, SV-274098, SV-274099, SV-274100, SV-274105, SV-274112, SV-274113, SV-274114, SV-274167
+  - name: audit_rule_keynames_overrides
+    description: The audit rules to be applied to the system
+    type: Hash
+    value: {}
+
+  # SV-274101
+  - name: audit_tool_mode
+    description: All audit config tools on the filesystem should be equal or less permissive than this octet
+    type: String
+    value: '0755'
+
+  # SV-274101
+  - name: audit_tools
+    description: Paths to tools related to audit function
+    type: Array
+    value:
+      - /sbin/auditctl
+      - /sbin/aureport
+      - /sbin/ausearch
+      - /sbin/autrace
+      - /sbin/auditd
+      - /sbin/rsyslogd
+      - /sbin/augenrules
+
+  # SV-274108
+  - name: var_log_audit_group
+    description: Group owner of /var/log/audit/audit.log
+    type: Array
+    value:
+      - root
+
+  # SV-274111
+  - name: audit_conf_mode
+    description: All audit config files on the filesystem should be equal or less permissive than this octet
+    type: String
+    value: '0640'
+
+  # SV-274119, SV-274123, SV-274132
+  - name: required_system_accounts
+    description: List of system accounts permitted to group-own system libraries
+    type: Array
+    value:
+      - root
+
+  # SV-274119, SV-274120, SV-274121, SV-274122, SV-274123, SV-274124
+  - name: system_libraries
+    description: Define system libraries which should have strict permissions enforced
+    type: Array
+    value:
+      - /lib
+      - /lib64
+      - /usr/lib
+      - /usr/lib64
+
+  # SV-274120
+  - name: mode_for_libs
+    description: Define default mode for system libraries
+    type: String
+    value: "0755"
+
+  # SV-274129
+  - name: var_log_messages_group
+    description: Group owner of /var/log/messages file
+    type: Array
+    value:
+      - root
+
+  # SV-274131, SV-274132
+  - name: system_command_dirs
+    description: Directories containing system command executables
+    type: Array
+    value:
+      - /bin
+      - /sbin
+      - /usr/bin
+      - /usr/sbin
+      - /usr/libexec
+      - /usr/local/bin
+      - /usr/local/sbin
+
+  # SV-274136
+  - name: difok
+    description: "The minimum number of required changed characters when passwords are updated."
+    type: Numeric
+    value: 8
+
+  # SV-274137
+  - name: pass_min_len
+    description: Minimum number of characters for a new password
+    type: Numeric
+    value: 15
+
+  # SV-274141
+  - name: concurrent_sessions_permitted
+    description: Number of permitted concurrent sessions on this system
+    type: Numeric
+    value: 10
+
+  # SV-274143, SV-274148
+  - name: exempt_home_users
+    description: Users exempt from home directory-based controls in array format
+    type: Array
+    value:
+      - root
+
+  # SV-274144
+  - name: login_prompt_delay
+    description: Delay in seconds before the login prompt is displayed again after a failed login attempt
+    type: Numeric
+    value: 4
+
+  # SV-274145
+  - name: modes_for_shells
+    description: Define default modes for logon and non-logon shells.
+    type: Hash
+    value:
+      default_umask: "077"
+      bashrc_umask: "077"
+      cshrc_umask: "077"
+      profile_umask: "077"
+
+  # SV-274148
+  - name: pass_max_days
+    description: "The maximum password lifetime restriction in days"
+    type: Numeric
+    value: 60
+
+  # SV-274149
+  - name: days_of_inactivity
+    description: Maximum number of days if account inactivity before account lockout
+    type: Numeric
+    value: 35
+
+  # SV-274150
+  - name: temporary_account_max_days
+    description: Max number of days a temporary account should be permitted to exist
+    type: Numeric
+    value: 3
+
+  # SV-274150
+  - name: temporary_accounts
+    description: Temporary user accounts
+    type: Array
+    value: []
+
+  # SV-274154
+  - name: unsuccessful_attempts
+    description: Maximum number of unsuccessful attempts before lockout
+    type: Numeric
+    value: 3
+
+  # SV-274156
+  - name: lockout_time
+    description: Minimum amount of time account must be locked out after failed logins. '0' indicates an account should not unlock until reset by an admin.
+    type: Numeric
+    value: 0
+
+  # SV-274157
+  - name: centralized_account_mgmt
+    description: Set to true if using a centralized account management method
+    type: Boolean
+    value: false
+
+  # SV-274157
+  - name: fail_interval
+    description: Interval of time in which the consecutive failed logon attempts must occur in order for the account to be locked out (time in seconds)
+    type: Numeric
+    value: 900
+
+  # SV-274157
+  - name: security_faillock_conf
+    description: The security faillock configuration file
+    type: String
+    value: /etc/security/faillock.conf
+
+  # SV-274160
+  - name: non_interactive_shells
+    description: These shells do not allow a user to login
+    type: Array
+    value:
+      - "/sbin/nologin"
+      - "/sbin/halt"
+      - "/sbin/shutdown"
+      - "/bin/false"
+      - "/bin/sync"
+      - "/bin/true"
+
+  # SV-274162, SV-274163
+  - name: password_hash_rounds
+    description: Number of rounds for hashing passwords
+    type: Numeric
+    value: 10000
+
+  # SV-274166
+  - name: stop_idle_session_sec
+    description: Number of seconds the system can be idle before session timeout
+    type: Numeric
+    value: 900
+
+  # SV-274168
+  - name: expected_audit_backlog_limit
+    description: Expected value for the audit backlog limit
+    type: Numeric
+    value: 8192
+
+  # SV-274182
+  - name: peripherals_package
+    description: "The name of the package used to managed connected peripherals"
+    type: String
+    value: "usbguard"
+
+  # SV-283441
+  - name: approved_crypto_backend
+    description: FIPS 140-2/140-3 approved cryptographic module conf file
+    type: String
+    value: /etc/crypto-policies/back-ends/libreswan.config

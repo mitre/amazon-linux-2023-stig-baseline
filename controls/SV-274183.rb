@@ -26,6 +26,8 @@ Look for the rate limiting settings: Scroll down to the "Rules" section. If rate
   tag nist: ['SC-5', 'SC-5 a']
   tag 'host'
 
+  # TODO - can we tell this from static config on host, or only through the EC2 console in browser?
+
   only_if('This control is Not Applicable to containers', impact: 0.0) {
     !virtualization.system.eql?('docker')
   }

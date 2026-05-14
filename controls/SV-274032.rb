@@ -28,4 +28,15 @@ $ sudo dnf install -y libreswan'
   tag 'documentable'
   tag cci: ['CCI-000803']
   tag nist: ['IA-7']
+  tag 'host','container'
+
+  required = input('libreswan_required')
+
+  only_if('Inputs show the user stated that there is no operational need for this package. Requirement N/A.', impact: 0.0) {
+    required
+  }
+
+  describe package('libreswan') do
+    it { should be_installed }
+  end
 end

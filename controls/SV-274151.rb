@@ -27,4 +27,20 @@ If necessary, create a "wheel" group and add administrative users to the group.)
   tag 'documentable'
   tag cci: ['CCI-002165']
   tag nist: ['AC-3 (4)']
+  tag 'host'
+
+  only_if('Control not applicable within a container', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  pam_string = 'pam_wheel'
+  pam_file = '/etc/pam.d/su'
+
+  pam_rules_check = command("grep #{pam_string} #{pam_file}").stdout.strip.split("\n")
+
+  describe 'PAM rules' do
+    it "should include an instance of #{pam_string} in #{pam_file}" do
+      expect(pam_rules_check).not_to be_empty
+    end
+  end
 end

@@ -37,7 +37,7 @@ $ sudo systemctl restart sshd.service'
     service('sshd').enabled? || package('openssh-server').installed?
   }
 
-  client_alive_count = input('sshd_client_alive_count_max')
+  client_alive_interval = input('sshd_client_alive_interval')
 
   if virtualization.system.eql?('docker') && !file('/etc/ssh/sshd_config').exist?
     impact 0.0
@@ -45,9 +45,9 @@ $ sudo systemctl restart sshd.service'
       skip 'SSH configuration does not apply inside containers. This control is Not Applicable.'
     end
   else
-    describe 'SSH ClientAliveCountMax configuration' do
-      it "should be set to #{client_alive_count}" do
-        expect(sshd_config.ClientAliveCountMax).to(cmp(client_alive_count), "SSH ClientAliveCountMax is commented out or not set to the expected value (#{client_alive_count})")
+    describe 'SSH ClientAliveInterval configuration' do
+      it "should be set to #{client_alive_interval}" do
+        expect(sshd_config.ClientAliveInterval).to(cmp(client_alive_interval), "SSH ClientAliveInterval is commented out or not set to the expected value (#{client_alive_interval})")
       end
     end
   end
