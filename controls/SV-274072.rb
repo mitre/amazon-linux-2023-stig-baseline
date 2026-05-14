@@ -23,4 +23,15 @@ space_left_action = email'
   tag 'documentable'
   tag cci: ['CCI-001855']
   tag nist: ['AU-5 (1)']
+  tag 'host'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  space_left_action = input('space_left_action')
+
+  describe auditd_conf do
+    its('space_left_action') { should cmp space_left_action }
+  end
 end

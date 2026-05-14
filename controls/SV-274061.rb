@@ -45,4 +45,22 @@ $ sudo systemctl restart sssd.service'
   tag 'documentable'
   tag cci: ['CCI-004046', 'CCI-001954']
   tag nist: ['IA-2 (6) (a)', 'IA-2 (12)']
+  tag 'host'
+
+  only_if('This control is Not Applicable to containers without SSH enabled', impact: 0.0) {
+    !(virtualization.system.eql?('docker') && !file('/etc/ssh/sshd_config').exist?)
+  }
+
+  if input('alternate_mfa_method') != ''
+    describe 'N/R' do
+      skip 'User inputs indicate an alternate MFA method is in use. Ask the administrator to indicate what type of multifactor authentication is being utilized and how the system implements certificate status checking. Record the results as an attestation file.'
+    end
+  else
+    sssd_cmd    = command('grep -irh certificate_verification /etc/sssd/sssd.conf /etc/sssd/conf.d/').stdout
+    sssd_config = parse_config(sssd_cmd, options: { assignment_regex: /(\w+)\s*=\s*(\S+)/ })
+    
+    describe sssd_config do
+      its('certificate_verification') { should cmp input('sssd_certificate_verification') }
+    end
+  end
 end

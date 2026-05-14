@@ -121,7 +121,7 @@ inputs:
     type: Boolean
     value: false
 
-  # SV-274037
+  # SV-274037, SV-274061
   - name: alternate_mfa_method
     description: Name of the MFA method in place on the system (leave blank if using the default SSSD, give the name if using an approved alternate method)
     type: String
@@ -131,7 +131,7 @@ inputs:
   - name: sssd_certificate_verification
     description: Certificate status checking for multifactor authentication.
     type: String
-    value: "ocsp_dgst=sha1"
+    value: "ocsp_dgst=sha512"
 
   # SV-274037, SV-274059
   - name: sssd_conf_files
@@ -223,7 +223,7 @@ inputs:
     type: Array
     value: []
 
-  # SV-274066
+  # SV-274065
   - name: banner_message_text_ral
     description: Banner message text for remote access logins.
     type: String
@@ -247,6 +247,12 @@ inputs:
       communications and work product are private and confidential. See User \
       Agreement for details."
 
+  # SV-274066
+  - name: sshd_bannerfile
+    description: Expected filepath location for the banner text for SSH connections
+    type: String
+    value: /etc/issue
+
   # SV-274069, SV-274070, SV-274071, SV-274077, SV-274079, SV-274080
   - name: alternative_logging_method
     description: Alternative tool for logging (instead of auditd and other built-in OS logging features) - leave blank if using default OS tools
@@ -267,6 +273,12 @@ inputs:
     type: Numeric
     value: 25
 
+  # SV-274072
+  - name: space_left_action
+    description: The action to take when space threshold is met
+    type: String
+    value: "email"
+
   # SV-274073
   - name: admin_space_left
     description: The percentage of space left on the audit storage volume that will trigger the system to take action
@@ -284,6 +296,12 @@ inputs:
     description: 'The method used to provide real-time information to the ISSO or AO'
     type: String
     value: email
+
+  # SV-274078
+  - name: action_send_stream_driver_mode
+    description: Setting for encryption on logs leaving the system
+    type: String
+    value: "1"
 
   # Default values for expected keynames for all audit rules
   # NOTE: DO NOT override this hash
@@ -570,6 +588,15 @@ inputs:
     description: Number of rounds for hashing passwords
     type: Numeric
     value: 10000
+
+  # SV-274165
+  - name: ww_dir_approved_owners
+    description: Owners approved to own a world-writeable public directory
+    type: Array
+    value:
+      - root
+      - sys
+      - bin
 
   # SV-274166
   - name: stop_idle_session_sec

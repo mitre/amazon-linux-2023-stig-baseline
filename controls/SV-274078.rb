@@ -21,4 +21,13 @@ $ActionSendStreamDriverMode 1'
   tag 'documentable'
   tag cci: ['CCI-001851']
   tag nist: ['AU-4 (1)']
+  tag 'host'
+
+  rsyslog_check = command("grep -ih -E '^\\$ActionSendStreamDriverMode' /etc/rsyslog.conf /etc/rsyslog.d/*.conf").stdout
+
+  rsyslog_parse = parse_config(rsyslog_check, { assignment_regex: /(^\S+)\s+(\w+)/ })
+  
+  describe rsyslog_parse do
+    its('$ActionSendStreamDriverMode') { should cmp input('action_send_stream_driver_mode') }
+  end
 end

@@ -27,9 +27,11 @@ $ sudo find / -xdev -type d -perm -0002 ! -user root ! -uid +999 -exec chown roo
   tag 'host'
   tag 'container'
 
+  ww_dir_approved_owners = input('ww_dir_approved_owners')
+
   partitions = etc_fstab.params.map { |partition| partition['mount_point'] }.uniq
 
-  ww_dirs = command("find #{partitions} -type d \\( -perm -0002 -a ! -perm -1000 \\) -print 2>/dev/null").stdout.split("\n")
+  ww_dirs = command("find #{partitions.join(" ")} -type d -perm -0002 ! -perm 1000 -print 2>/dev/null").stdout.split("\n")
 
   if ww_dirs.empty?
     describe 'List of world-writable directories on the target' do
@@ -37,9 +39,9 @@ $ sudo find / -xdev -type d -perm -0002 ! -user root ! -uid +999 -exec chown roo
       it { should be_empty }
     end
   else
-    non_sticky_ww_dirs = ww_dirs.reject { |dir| file(dir).sticky? }
+    non_sticky_ww_dirs = ww_dirs.reject { |dir| ww_dir_approved_owners.include?(file(dir).owner) }
     describe 'All world-writeable directories' do
-      it 'should have the sticky bit set' do
+      it 'should be owned by an appropriate system account' do
         fail_msg = "Public directories without sticky bit:\n\t- #{non_sticky_ww_dirs.join("\n\t- ")}"
         expect(non_sticky_ww_dirs).to be_empty, fail_msg
       end

@@ -33,4 +33,22 @@ $ sudo service auditd restart'
   tag 'documentable'
   tag cci: ['CCI-000018', 'CCI-000130', 'CCI-000135', 'CCI-000169', 'CCI-000015', 'CCI-002884', 'CCI-000172', 'CCI-001403', 'CCI-001404', 'CCI-001405', 'CCI-002130']
   tag nist: ['AC-2 (4)', 'AU-3 a', 'AU-3 (1)', 'AU-12 a', 'AC-2 (1)', 'MA-4 (1) (a)', 'AU-12 c', 'AC-2 (4)', 'AC-2 (4)', 'AC-2 (4)', 'AC-2 (4)']
+  tag 'host'
+
+  # Note that this requirement seems to be duplicative with SV-274113 in the source STIG document as of V1R3
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  audit_command = '/etc/passwd'
+
+  describe 'Command' do
+    it "#{audit_command} is audited properly" do
+      audit_rule = auditd.file(audit_command)
+      expect(audit_rule).to exist
+      expect(audit_rule.permissions.flatten).to include('w', 'a')
+      expect(audit_rule.key.uniq).to include(input('audit_rule_keynames').merge(input('audit_rule_keynames_overrides'))[audit_command])
+    end
+  end
 end

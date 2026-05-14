@@ -53,46 +53,22 @@ Banner /etc/issue'
   tag 'host'
   tag 'container-conditional'
 
-  only_if('Control not applicable - SSH is not installed within containerized RHEL', impact: 0.0) {
-    !virtualization.system.eql?('docker') || file('/etc/ssh/sshd_config').exist?
+  only_if('SSH is not installed on the system this requirement is Not Applicable', impact: 0.0) {
+    service('sshd').enabled? || package('openssh-server').installed?
   }
 
-  # When Banner is commented, not found, disabled, or the specified file does not exist, this is a finding.
-  banner_file = sshd_config.banner
+  sshd_bannerfile = input('sshd_bannerfile')
 
-  # Banner property is commented out.
-  if banner_file.nil?
-    describe 'The SSHD Banner is not set' do
-      subject { banner_file.nil? }
-      it { should be false }
+  if virtualization.system.eql?('docker') && !file('/etc/ssh/sshd_config').exist?
+    impact 0.0
+    describe 'skip' do
+      skip 'SSH configuration does not apply inside containers. This control is Not Applicable.'
     end
-  end
-
-  # Banner property is set to "none"
-  if !banner_file.nil? && !banner_file.match(/none/i).nil?
-    describe 'The SSHD Banner is disabled' do
-      subject { banner_file.match(/none/i).nil? }
-      it { should be true }
-    end
-  end
-
-  # Banner property provides a path to a file, however, it does not exist.
-  if !banner_file.nil? && banner_file.match(/none/i).nil? && !file(banner_file).exist?
-    describe 'The SSHD Banner is set, but, the file does not exist' do
-      subject { file(banner_file).exist? }
-      it { should be true }
-    end
-  end
-
-  # Banner property provides a path to a file and it exists.
-  next unless !banner_file.nil? && banner_file.match(/none/i).nil? && file(banner_file).exist?
-
-  banner = file(banner_file).content.gsub(/[\r\n\s]/, '')
-  expected_banner = input('banner_message_text_ral').gsub(/[\r\n\s]/, '')
-
-  describe 'The SSHD Banner' do
-    it 'is set to the standard banner and has the correct text' do
-      expect(banner).to eq(expected_banner), 'Banner does not match expected text'
+  else
+    describe 'SSH bannerfile' do
+      it "should be set to #{sshd_bannerfile}" do
+        expect(sshd_config.Banner).to(cmp(sshd_bannerfile), "SSH bannerfile is commented out or not set to the expected value (#{sshd_bannerfile})")
+      end
     end
   end
 end

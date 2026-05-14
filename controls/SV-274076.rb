@@ -25,4 +25,21 @@ The audit daemon must be restarted for changes to take effect.'
   tag 'documentable'
   tag cci: ['CCI-001851']
   tag nist: ['AU-4 (1)']
+  tag 'host'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  plugin_file = file('/etc/audit/plugins.d/syslog.conf').exist?
+  
+  if plugin_file
+    describe parse_config_file('/etc/audit/plugins.d/syslog.conf') do
+      its('active') { should cmp 'yes' }
+    end
+  else
+    describe file('/etc/audit/plugins.d/syslog.conf') do
+      it { should exist }
+    end
+  end
 end

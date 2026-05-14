@@ -28,6 +28,8 @@ $ sudo augenrules --load'
   tag nist: ['AU-12 a', 'AC-2 (4)', 'AU-3 a', 'AU-3 (1)', 'AU-12 c', 'MA-4 (1) (a)', 'AC-2 (1)']
   tag 'host'
 
+  # Note that this requirement seems to be duplicative with SV-274104 in the source STIG document as of V1R3
+
   only_if('This control is Not Applicable to containers', impact: 0.0) {
     !virtualization.system.eql?('docker')
   }
