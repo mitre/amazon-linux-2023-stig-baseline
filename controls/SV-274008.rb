@@ -28,7 +28,7 @@ $ sudo dnf -y remove sendmail'
   tag 'host'
   tag 'container'
 
-  describe package('nfs-utils') do
+  describe package('sendmail') do
     it { should_not be_installed }
   end
 end

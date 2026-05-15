@@ -23,13 +23,10 @@ Edit the file "/etc/passwd" and provide each interactive user account that has a
   tag 'host'
   tag 'container'
 
-  ignore_shells = input('non_interactive_shells').join('|')
-  interactive_users = passwd.where { uid.to_i >= 1000 && !shell.match(ignore_shells) }.users
-  interactive_users_without_group = interactive_users.reject { |u| group(user(u).group).exists? }
+  user_count = passwd.where { uid.to_i >= 1000 }.entries.length
 
-  describe 'Interactive users' do
-    it 'should have a valid primary group' do
-      expect(interactive_users_without_group).to be_empty, "Interactive users without a valid primary group:\n\t- #{interactive_users_without_group.join("\n\t- ")}"
-    end
+  describe "Count of interactive unique user IDs should match interactive user count (#{user_count}): UID count" do
+    subject { passwd.where { uid.to_i >= 1000 }.uids.uniq.length }
+    it { should eq user_count }
   end
 end

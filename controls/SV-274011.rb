@@ -32,7 +32,7 @@ $ sudo dnf -y remove gssproxy'
   tag 'host'
   tag 'container'
 
-  describe command('dnf -q repolist --enabled') do
-    its('stdout') { should_not match(/epel/i) }
+  describe package('gssproxy') do
+    it { should_not be_installed }
   end
 end

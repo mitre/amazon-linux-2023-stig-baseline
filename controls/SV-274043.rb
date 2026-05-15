@@ -50,7 +50,7 @@ Note: Systemwide crypto policies are applied on application startup. It is recom
   #
   # This means that test logic may not match the STIG check text at this time.
 
-  only_if('Control not applicable - SSH is not installed within containerized RHEL', impact: 0.0) {
+  only_if('Control not applicable - SSH is not installed within containerized AL2023', impact: 0.0) {
     !(virtualization.system.eql?('docker') && !file('/etc/sysconfig/sshd').exist?)
   }
 

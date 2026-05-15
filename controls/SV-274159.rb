@@ -22,10 +22,13 @@ Edit the file "/etc/passwd" and ensure that every user's GID is a valid GID.)
   tag 'host'
   tag 'container'
 
-  user_count = passwd.where { uid.to_i >= 1000 }.entries.length
+  ignore_shells = input('non_interactive_shells').join('|')
+  interactive_users = passwd.where { uid.to_i >= 1000 && !shell.match(ignore_shells) }.users
+  interactive_users_without_group = interactive_users.reject { |u| group(user(u).group).exists? }
 
-  describe "Count of interactive unique user IDs should match interactive user count (#{user_count}): UID count" do
-    subject { passwd.where { uid.to_i >= 1000 }.uids.uniq.length }
-    it { should eq user_count }
+  describe 'Interactive users' do
+    it 'should have a valid primary group' do
+      expect(interactive_users_without_group).to be_empty, "Interactive users without a valid primary group:\n\t- #{interactive_users_without_group.join("\n\t- ")}"
+    end
   end
 end

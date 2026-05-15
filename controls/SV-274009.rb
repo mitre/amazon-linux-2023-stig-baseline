@@ -28,7 +28,7 @@ $ sudo dnf -y remove nfs-utils'
   tag 'host'
   tag 'container'
 
-  describe package('ypserv') do
+  describe package('nfs-utils') do
     it { should_not be_installed }
   end
 end

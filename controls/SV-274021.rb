@@ -32,7 +32,7 @@ $ sudo systemctl restart rsyslog.service'
   tag 'host'
   tag 'container-conditional'
 
-  only_if('Control not applicable; remote access not configured within containerized RHEL', impact: 0.0) {
+  only_if('Control not applicable; remote access not configured within containerized AL2023', impact: 0.0) {
     !(virtualization.system.eql?('docker') && !file('/etc/ssh/sshd_config').exist?)
   }
 

@@ -47,17 +47,16 @@ inputs:
 
   # SV-273995
   - name: rpm_gpg_file
-    description: Red Hat uses GPG keys labels defined in file
+    description: Amazon Linux uses GPG keys labels defined in file
     type: String
-    value: /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+    value: /etc/pki/rpm-gpg/RPM-GPG-KEY-amazon-linux-2023
 
   # SV-273995
   - name: rpm_gpg_keys
-    description: Red Hat uses GPG keys labels with matching fingerprints
+    description: Amazon Linux uses GPG keys labels with matching fingerprints
     type: Hash
     value:
-      "release key 2": "567E 347A D004 4ADE 55BA  8A5F 199E 2F91 FD43 1D51"
-      "auxiliary key": "7E46 2425 8C40 6535 D56D  6F13 5054 E4A4 5A63 40B3"
+      "Amazon Linux": "B21C 50FA 44A9 9720 EAA7  2F7F E951 904A D832 C631"
 
   # SV-274004
   - name: ipv4_enabled
@@ -597,6 +596,12 @@ inputs:
       - root
       - sys
       - bin
+
+  # SV-274142
+  - name: shell_session_timeout
+    description: Maximum TMOUT value (in seconds) for interactive command shell sessions
+    type: Numeric
+    value: 600
 
   # SV-274166
   - name: stop_idle_session_sec
