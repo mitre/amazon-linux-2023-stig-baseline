@@ -2,6 +2,10 @@ name: AL2023 Container Testing Matrix
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
+
 
 jobs:
   validate:
