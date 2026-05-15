@@ -33,20 +33,10 @@ $ sudo find / -type d -perm -0002 ! -perm -1000 -exec chmod +t {} +'
 
   partitions = etc_fstab.params.map { |partition| partition['mount_point'] }.uniq
 
-  ww_dirs = command("find #{partitions.join(" ")} -type d -perm -0002 ! -perm 1000 -print 2>/dev/null").stdout.split("\n")
+  ww_dirs = command("find #{partitions.join(' ')} -xdev -type d -perm -0002 ! -perm -1000 -print 2>/dev/null").stdout.split("\n")
 
-  if ww_dirs.empty?
-    describe 'List of world-writable directories on the target' do
-      subject { ww_dirs }
-      it { should be_empty }
-    end
-  else
-    non_sticky_ww_dirs = ww_dirs.reject { |dir| file(dir).sticky? }
-    describe 'All world-writeable directories' do
-      it 'should have the sticky bit set' do
-        fail_msg = "Public directories without sticky bit:\n\t- #{non_sticky_ww_dirs.join("\n\t- ")}"
-        expect(non_sticky_ww_dirs).to be_empty, fail_msg
-      end
-    end
+  describe 'World-writable directories without the sticky bit' do
+    subject { ww_dirs }
+    it { should be_empty }
   end
 end
