@@ -36,7 +36,7 @@ $ sudo sysctl --system'
   tag 'host'
   tag 'container'
 
-  describe package('subscription-manager') do
-    it { should be_installed }
+  describe kernel_parameter('kernel.kexec_load_disabled') do
+    its('value') { should cmp 1 }
   end
 end

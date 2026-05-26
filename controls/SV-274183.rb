@@ -26,13 +26,11 @@ Look for the rate limiting settings: Scroll down to the "Rules" section. If rate
   tag nist: ['SC-5', 'SC-5 a']
   tag 'host'
 
-  # TODO - can we tell this from static config on host, or only through the EC2 console in browser?
-
   only_if('This control is Not Applicable to containers', impact: 0.0) {
     !virtualization.system.eql?('docker')
   }
 
-  describe parse_config_file('/etc/firewalld/firewalld.conf') do
-    its('FirewallBackend') { should eq 'nftables' }
+  describe 'Manual review required' do
+    skip 'This check requires inspection of the AWS Application Load Balancer rate-limiting configuration via the EC2 console (Load Balancers > Listener > Rules). It cannot be verified from on-host configuration alone.'
   end
 end
