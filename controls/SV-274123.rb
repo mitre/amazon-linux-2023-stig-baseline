@@ -23,9 +23,10 @@ $ sudo find /lib /lib64 /usr/lib /usr/lib64 -type f -name '*.so*' ! -group root 
   tag 'host'
   tag 'container'
 
-  required_system_account_caveats = input('required_system_accounts').map { |acct| "-group #{acct}" }.join(' ')
+  allowed_groups_expr = input('required_system_accounts').map { |acct| "-group #{acct}" }.join(' -o ')
+  required_system_account_caveats = "! \\( #{allowed_groups_expr} \\)"
 
-  failing_files = command("find -L #{input('system_libraries').join(' ')} ! #{required_system_account_caveats}").stdout.split("\n")
+  failing_files = command("find -L #{input('system_libraries').join(' ')} #{required_system_account_caveats}").stdout.split("\n")
 
   describe 'System libraries' do
     it 'should be group-owned by root' do
