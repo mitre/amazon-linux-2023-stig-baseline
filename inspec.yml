@@ -599,3 +599,14 @@ inputs:
     type: Numeric
     value: 8192
 
+  # SV-274175
+  - name: authoritative_timeserver
+    description: |
+      Regular expression or substring matching an organization-approved
+      authoritative NTP time source (e.g., the USNO/DoD time servers).
+      The 'server' entries in /etc/chrony.conf are matched against this
+      value. Leave blank to skip the source-of-truth match; the
+      maxpoll-interval portion of SV-274175 will still run.
+    type: String
+    value: ''
+

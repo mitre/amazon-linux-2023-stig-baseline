@@ -58,16 +58,22 @@ server <USNO/DOD Server> iburst maxpoll 16'
     its('server') { should_not be_nil }
   end
 
-  unless chrony_conf('/etc/chrony.conf').server.nil?
+  authoritative_timeserver = input('authoritative_timeserver').to_s
+
+  if authoritative_timeserver.empty?
+    describe 'Authoritative time source match' do
+      skip "Input 'authoritative_timeserver' is not set; skipping the server-name match. Provide a regex/substring identifying the org-approved USNO/DoD time source to enable this check."
+    end
+  elsif !chrony_conf('/etc/chrony.conf').server.nil?
     if chrony_conf('/etc/chrony.conf').server.is_a? String
       describe chrony_conf('/etc/chrony.conf') do
-        its('server') { should match input('authoritative_timeserver') }
+        its('server') { should match authoritative_timeserver }
       end
     end
 
     if chrony_conf('/etc/chrony.conf').server.is_a? Array
       describe chrony_conf('/etc/chrony.conf') do
-        its('server.join') { should match input('authoritative_timeserver') }
+        its('server.join') { should match authoritative_timeserver }
       end
     end
   end
