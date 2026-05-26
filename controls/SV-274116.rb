@@ -41,8 +41,7 @@ $ sudo chgrp ${GROUP} /var/log/audit)
   tag 'host'
   tag 'container'
 
-  describe directory('/var/log') do
-    it { should exist }
-    its('group') { should eq 'root' }
+  describe file(auditd_conf('/etc/audit/auditd.conf').log_file) do
+    its('group') { should be_in input('var_log_audit_group') }
   end
 end
