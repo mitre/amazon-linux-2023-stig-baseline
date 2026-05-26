@@ -45,7 +45,7 @@ Note: Systemwide crypto policies are applied on application startup. It is recom
   approved_ciphers = input('approved_openssh_server_conf')['ciphers']
 
   options = { assignment_regex: /^(\S+)\s+(\S+)$/ }
-  opensshserver_conf = parse_config_file('/etc/crypto-policies/back-ends/openssh.config', options).params.to_h { |k, v| [k.downcase, v.split(',')] }
+  opensshserver_conf = parse_config_file('/etc/crypto-policies/back-ends/opensshserver.config', options).params.to_h { |k, v| [k.downcase, v.split(',')] }
 
   actual_ciphers = opensshserver_conf['ciphers'].join(',')
 

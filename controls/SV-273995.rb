@@ -51,7 +51,7 @@ gpgcheck=1)
     it { should exist }
   end
   rpm_gpg_keys.each do |k, v|
-    describe command('rpm -q --queryformat "%{SUMMARY}\\n" gpg-pubkey | grep -i "red hat"') do
+    describe command(%(rpm -q --queryformat "%{SUMMARY}\\n" gpg-pubkey | grep -i "#{k}")) do
       its('stdout') { should include k.to_s }
     end
     next unless file(rpm_gpg_file).exist?

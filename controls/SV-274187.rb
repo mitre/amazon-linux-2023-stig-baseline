@@ -30,6 +30,6 @@ $ sudo augenrules --load'
     !virtualization.system.eql?('docker')
   }
   describe command('grep -i immutable /etc/audit/audit.rules') do
-    its('stdout.strip') { should cmp '--loginuid-immutable' }
+    its('stdout') { should match(/^\s*--loginuid-immutable\s*$/) }
   end
 end

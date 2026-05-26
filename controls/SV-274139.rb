@@ -35,7 +35,7 @@ enforce_for_root'
 
   # NOTE: -s to supress if no files
   # Note: -h to just have occurances and ignore filename
-  setting_check = command("grep -sh #{setting} /etc/security/pwquality.conf /etc/security/pwquality.conf/*").stdout.strip.match(/^#{setting}$/)
+  setting_check = command("grep -sh #{setting} /etc/security/pwquality.conf /etc/security/pwquality.conf.d/*").stdout.strip.match(/^#{setting}$/)
   describe 'The root account' do
     it 'should enforce password complexity rules' do
       expect(setting_check).to_not be_nil, "'#{setting}' not found (or commented out) in conf file(s)"
