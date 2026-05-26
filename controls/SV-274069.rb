@@ -31,11 +31,8 @@ The audit daemon must be restarted for changes to take effect.'
   }
 
   if input('alternative_logging_method') == ''
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^$ActionSendStreamDriverAuthMode' #{input('logging_conf_files').join(' ')}  | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match %r{\$ActionSendStreamDriverAuthMode\s+x509/name} }
+    describe parse_config_file('/etc/audit/auditd.conf') do
+      its('name_format') { should be_in %w[hostname fqd numeric] }
     end
   else
     describe 'manual check' do

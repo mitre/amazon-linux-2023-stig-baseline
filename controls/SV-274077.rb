@@ -28,8 +28,11 @@ $ActionSendStreamDriverAuthMode x509/name'
   }
 
   if input('alternative_logging_method') == ''
-    describe package('rsyslog') do
-      it { should be_installed }
+    describe 'rsyslog configuration' do
+      subject {
+        command("grep -i '^\\$ActionSendStreamDriverAuthMode' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
+      }
+      it { should match %r{\$ActionSendStreamDriverAuthMode\s+x509/name} }
     end
   else
     describe 'manual check' do

@@ -35,18 +35,17 @@ URL=https://[server.domain]:[port]'
   }
 
   if input('alternative_logging_method') == ''
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^$DefaultNetstreamDriver' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match(/\$DefaultNetstreamDriver\s+gtls/) }
+    journal_upload_conf = '/etc/systemd/journal-upload.conf'
+
+    describe file(journal_upload_conf) do
+      it { should exist }
     end
 
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^$ActionSendStreamDriverMode' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match(/\$ActionSendStreamDriverMode\s+1/) }
+    %w[URL ServerKeyFile ServerCertificateFile TrustedCertificateFile].each do |key|
+      describe "journal-upload.conf setting #{key}" do
+        subject { command("grep -E '^\\s*#{key}\\s*=\\s*\\S+' #{journal_upload_conf}").stdout.strip }
+        it { should_not be_empty }
+      end
     end
   else
     describe 'manual check' do

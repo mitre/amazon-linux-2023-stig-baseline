@@ -28,8 +28,11 @@ If the value of the "$DefaultNetstreamDriver" option is not set to "ossl" or the
   }
 
   if input('alternative_logging_method') == ''
-    describe command("grep -i 'type=\"omfwd\"' #{input('logging_conf_files').join(' ')}") do
-      its('stdout') { should match(/^.*:\s*#\s*action\(\s*type\s*=\s*"omfwd"/i) }
+    describe 'rsyslog configuration' do
+      subject {
+        command("grep -i '^\\$DefaultNetstreamDriver' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
+      }
+      it { should match(/\$DefaultNetstreamDriver\s+(gtls|ossl)/) }
     end
   else
     describe 'manual check' do
