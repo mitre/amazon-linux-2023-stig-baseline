@@ -23,6 +23,10 @@ $ sudo dnf install -y openssl-pkcs11'
   tag nist: ['IA-2 (11)', 'IA-2 (12)', 'IA-2 (6) (a)']
   tag 'host'
 
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
   describe package('openssl-pkcs11') do
     it { should be_installed }
   end

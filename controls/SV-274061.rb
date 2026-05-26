@@ -51,6 +51,10 @@ $ sudo systemctl restart sssd.service'
     !(virtualization.system.eql?('docker') && !file('/etc/ssh/sshd_config').exist?)
   }
 
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
   if input('alternate_mfa_method') != ''
     describe 'N/R' do
       skip 'User inputs indicate an alternate MFA method is in use. Ask the administrator to indicate what type of multifactor authentication is being utilized and how the system implements certificate status checking. Record the results as an attestation file.'

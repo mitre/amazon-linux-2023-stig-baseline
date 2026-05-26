@@ -102,6 +102,17 @@ inputs:
     type: Boolean
     value: true
 
+  # SV-274034, SV-274036, SV-274037, SV-274059, SV-274061, SV-274063, SV-274181
+  - name: mfa_required
+    description: |
+      Set to false on systems where MFA is not operationally applicable
+      (e.g., headless service VMs, build agents, single-tenant infrastructure
+      with no interactive logins). When false, all MFA infrastructure
+      controls become Not Applicable. The decision to set this false must be
+      documented and approved by the ISSO/AO. Default: true.
+    type: Boolean
+    value: true
+
   # SV-274034, SV-274036, SV-274059, SV-274063, SV-274181
   - name: smart_card_enabled
     description: Set to true if smart cards are enabled for the system
