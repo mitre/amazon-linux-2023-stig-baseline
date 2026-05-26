@@ -58,12 +58,6 @@ inputs:
     value:
       "Amazon Linux": "B21C 50FA 44A9 9720 EAA7  2F7F E951 904A D832 C631"
 
-  # SV-274004
-  - name: ipv4_enabled
-    description: Set to 'true' if IPv4 is enabled on the system.
-    type: Boolean
-    value: true
-
   # SV-274007
   - name: ftp_required
     description: Set to true if there is a documented requirement for the target system to use FTP
@@ -77,12 +71,6 @@ inputs:
     value:
       - '/etc/sudoers'
       - '/etc/sudoers.d/*'
-
-  # SV-274020
-  - name: audit_flush_threshold
-    description: Threshold at which the audit system should flush the audit logs to disk
-    type: Numeric
-    value: 100
 
   # SV-274024, SV-274025
   - name: file_integrity_tool
@@ -559,12 +547,6 @@ inputs:
     value: false
 
   # SV-274157
-  - name: fail_interval
-    description: Interval of time in which the consecutive failed logon attempts must occur in order for the account to be locked out (time in seconds)
-    type: Numeric
-    value: 900
-
-  # SV-274157
   - name: security_faillock_conf
     description: The security faillock configuration file
     type: String
@@ -588,15 +570,6 @@ inputs:
     type: Numeric
     value: 10000
 
-  # SV-274165
-  - name: ww_dir_approved_owners
-    description: Owners approved to own a world-writeable public directory
-    type: Array
-    value:
-      - root
-      - sys
-      - bin
-
   # SV-274142
   - name: shell_session_timeout
     description: Maximum TMOUT value (in seconds) for interactive command shell sessions
@@ -615,14 +588,3 @@ inputs:
     type: Numeric
     value: 8192
 
-  # SV-274182
-  - name: peripherals_package
-    description: "The name of the package used to managed connected peripherals"
-    type: String
-    value: "usbguard"
-
-  # SV-283441
-  - name: approved_crypto_backend
-    description: FIPS 140-2/140-3 approved cryptographic module conf file
-    type: String
-    value: /etc/crypto-policies/back-ends/libreswan.config
