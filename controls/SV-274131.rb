@@ -25,7 +25,7 @@ $ sudo chown root [FILE]'
   tag 'host'
   tag 'container'
 
-  failing_files = command("find -L #{input('system_command_dirs').join(' ')} ! -user root -exec ls -d {} \\;").stdout.split("\n")
+  failing_files = command("find -L #{input('system_command_dirs').join(' ')} ! -user root").stdout.split("\n")
 
   describe 'System commands' do
     it 'should be owned by root' do

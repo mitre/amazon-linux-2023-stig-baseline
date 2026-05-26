@@ -27,7 +27,7 @@ $ sudo chgrp root [FILE]'
 
   required_system_account_caveats = input('required_system_accounts').map { |acct| "-group #{acct}" }.join(' ')
 
-  failing_files = command("find -L #{input('system_command_dirs').join(' ')} ! #{required_system_account_caveats} -exec ls -d {} \\;").stdout.split("\n")
+  failing_files = command("find -L #{input('system_command_dirs').join(' ')} ! #{required_system_account_caveats}").stdout.split("\n")
 
   describe 'System commands' do
     it 'should be group-owned by root' do
