@@ -20,6 +20,10 @@ push-state.json
 # Dolt backup sync state (runtime, last_sync timestamp + duration)
 dolt-backup-state.json
 
+# Tool-managed git hooks (installed by `bd init`; team prefers not to
+# track tool internals in PR diffs)
+hooks/
+
 # Lock files (various runtime locks)
 *.lock
 

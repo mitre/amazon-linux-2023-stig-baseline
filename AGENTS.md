@@ -12,6 +12,15 @@ bd close <id>         # Complete work
 bd dolt push          # Push beads data to remote
 ```
 
+## First-time setup on a fresh clone
+
+After cloning, run `bd init` once. The bd git hooks live in
+`.beads/hooks/` and are intentionally **not** tracked (they're tool
+internals; the team prefers a clean repo over having them in PR diffs).
+Without `bd init`, bd's auto-export and pre-commit hooks won't run on
+your commits — the project still works, but `.beads/issues.jsonl` may
+drift from the local Dolt DB until you `bd export` manually.
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
