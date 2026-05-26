@@ -23,14 +23,14 @@ $ sudo chage -M 60 [user]'
   tag 'host'
   tag 'container'
 
-  max_days = input('pass_max_days')
+  expected_maxdays = input('pass_max_days')
 
-  bad_users = users.where { uid >= 1000 }.where { maxdays > max_days || maxdays.negative? }.usernames
+  bad_users = users.where { uid >= 1000 }.where { maxdays > expected_maxdays || maxdays.negative? }.usernames
   in_scope_users = bad_users - input('exempt_home_users')
 
   describe 'Interactive users' do
-    it "must have a maximum password age of #{max_days} days or fewer (and non-negative)" do
-      failure_message = "The following users have a non-compliant maxdays (> #{max_days} or negative): #{in_scope_users.join(', ')}"
+    it "must have a maximum password age of #{expected_maxdays} days or fewer (and non-negative)" do
+      failure_message = "The following users have a non-compliant maxdays (> #{expected_maxdays} or negative): #{in_scope_users.join(', ')}"
       expect(in_scope_users).to be_empty, failure_message
     end
   end

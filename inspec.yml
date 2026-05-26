@@ -563,6 +563,16 @@ inputs:
     type: String
     value: /etc/security/faillock.conf
 
+  # SV-274157
+  - name: unlock_time
+    description: |
+      Value (in seconds) for the faillock 'unlock_time' setting. The STIG
+      requires accounts to remain locked until released by an administrator,
+      which faillock represents as unlock_time = 0. Override only if your
+      organization has a documented exemption permitting time-based unlock.
+    type: Numeric
+    value: 0
+
   # SV-274160
   - name: non_interactive_shells
     description: These shells do not allow a user to login

@@ -31,9 +31,7 @@ $ sudo chown root /var/log/audit'
   tag 'host'
   tag 'container'
 
-  audit_log_dir = File.dirname(auditd_conf('/etc/audit/auditd.conf').log_file.to_s)
-
-  describe directory(audit_log_dir) do
+  describe directory(auditd_conf('/etc/audit/auditd.conf').log_file.rpartition('/').first) do
     it { should exist }
     it { should be_owned_by 'root' }
   end
