@@ -33,20 +33,25 @@ Remove any configurations that conflict with the above value. This value can be 
   tag 'container'
 
   setting = 'difok'
-  expected_value = input('difok')
+  expected_min = input('difok')
+  pwquality_files = ['/etc/security/pwquality.conf'] + Dir.glob('/etc/security/pwquality.conf.d/*.conf')
 
-  pattern = /^[^#]*#{setting}\s*=\s*(?<value>\d+)$/
-  setting_check = command("grep #{setting} /etc/security/pwquality.conf /etc/security/pwquality.conf.d/*.conf").stdout.strip.scan(pattern).flatten
+  values_found = pwquality_files.flat_map do |path|
+    next [] unless file(path).exist?
+    parsed = parse_config_file(path).params
+    parsed.key?(setting) ? [[path, parsed[setting].to_i]] : []
+  end
 
-  describe 'Password settings for the root account' do
-    it 'should be set' do
-      expect(setting_check).to_not be_empty, "'#{setting}' not found (or commented out) in conf file(s)"
+  low_values = values_found.select { |_path, v| v < expected_min }
+
+  describe "Password quality setting '#{setting}'" do
+    it 'should be configured in at least one pwquality config file' do
+      expect(values_found).not_to be_empty,
+        "'#{setting}' not found (or commented out) in any pwquality file. Searched:\n\t- #{pwquality_files.join("\n\t- ")}"
     end
-    it 'should only be set once' do
-      expect(setting_check.length).to eq(1), "'#{setting}' set more than once in conf file(s)"
-    end
-    it "should be set to be >= #{expected_value}" do
-      expect(setting_check.first.to_i).to be >= expected_value, "'#{setting}' set to less than '#{expected_value}' in conf file(s)"
+    it "should be >= #{expected_min} wherever it is set" do
+      expect(low_values).to be_empty,
+        "Files with '#{setting}' < #{expected_min}:\n\t- #{low_values.map { |p, v| "#{p} (#{v})" }.join("\n\t- ")}"
     end
   end
 end

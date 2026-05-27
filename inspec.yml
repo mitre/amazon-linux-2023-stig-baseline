@@ -295,6 +295,15 @@ inputs:
     type: String
     value: email
 
+  # SV-274107
+  - name: disk_full_action
+    description: 'Allowed values for the auditd disk_full_action setting when the audit storage volume is full. STIG accepts SYSLOG, SINGLE, or HALT.'
+    type: Array
+    value:
+      - SYSLOG
+      - SINGLE
+      - HALT
+
   # SV-274078
   - name: action_send_stream_driver_mode
     description: Setting for encryption on logs leaving the system

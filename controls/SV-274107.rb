@@ -29,32 +29,16 @@ disk_full_action = SYSLOG'
   tag 'host'
   tag 'container'
 
-  setting = 'DefaultNetstreamDriver'
-  expected_value = 'gtls'
+  # NOTE: The body delivered by saf-delta contained the rsyslog
+  # $DefaultNetstreamDriver check from a different control. This control's
+  # title and check text are about auditd's disk_full_action.
+  allowed_actions = input('disk_full_action')
 
-  pattern = /[^#]\$#{setting}\s*(?<value>\w+)$/
-  setting_check = command("grep -i #{setting} /etc/rsyslog.conf /etc/rsyslog.d/*.conf").stdout.strip.scan(pattern).flatten
-
-  describe 'Rsyslogd DefaultNetstreamDriver' do
-    if setting_check.empty?
-      it 'should be set' do
-        expect(setting_check).to_not be_empty, "'#{setting}' not found (or commented out) in conf file(s)"
-      end
-    else
-      it 'should only be set once' do
-        expect(setting_check.length).to eq(1), "'#{setting}' set more than once in conf file(s)"
-      end
-      it "should be set to '#{expected_value}'" do
-        expect(setting_check.first).to eq(expected_value), "'#{setting}' set to '#{setting_check.first}' in conf file(s)"
-      end
+  describe 'auditd disk_full_action' do
+    subject { auditd_conf.disk_full_action.to_s.upcase }
+    it "should be one of: #{allowed_actions.join(', ')}" do
+      expect(subject).to be_in(allowed_actions),
+        "auditd_conf disk_full_action is '#{subject}'; expected one of #{allowed_actions.join(', ')}"
     end
   end
-
-  # netstream_driver = command('grep -i $DefaultNetstreamDriver /etc/rsyslog.conf /etc/rsyslog.d/*').stdout.strip
-
-  # describe "Rsyslog config" do
-  #   it "should encrypt audit records for transfer" do
-  #     expect(modload).to be_empty, "ModLoad settings found:\n\t- #{modload.join("\n\t- ")}"
-  #   end
-  # end
 end
