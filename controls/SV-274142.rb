@@ -29,31 +29,31 @@ declare -xr TMOUT=600'
   tag 'host'
   tag 'container'
 
-  tmout_cmd = command('grep -i tmout /etc/profile /etc/profile.d/*.sh')
+  # STIG check text greps both /etc/profile and /etc/profile.d/*.sh.
+  # Iterate both — a TMOUT setting in any uncommented line counts.
+  profile_files = ['/etc/profile'] + Dir.glob('/etc/profile.d/*.sh')
+  max_timeout = input('shell_session_timeout')
 
-  # Guard clause for command failure
-  unless tmout_cmd.exit_status == 0
-    describe 'Shell timeout configuration' do
-      it 'should have TMOUT configured' do
-        expect(tmout_cmd.exit_status).to eq(0), 'No TMOUT configuration found in profile files'
-      end
-    end
+  tmout_values = profile_files.flat_map do |path|
+    next [] unless file(path).exist?
+    file(path).content.lines
+      .map(&:strip)
+      .reject { |l| l.empty? || l.start_with?('#') }
+      .flat_map { |l| l.scan(/TMOUT\s*=\s*(\d+)/i) }
+      .flatten
+      .map { |v| [path, v.to_i] }
   end
 
-  # Parse TMOUT value with better error handling
-  tmout_match = tmout_cmd.stdout.match(/^[^#]+TMOUT\s*=\s*(\d+)/i)
+  too_high = tmout_values.select { |_path, v| v > max_timeout }
 
-  describe 'Shell timeout configuration' do
-    it 'should have TMOUT configured' do
-      expect(tmout_match).to_not be_nil, 'No valid TMOUT value found in profile files'
+  describe "Shell timeout (TMOUT) across /etc/profile and /etc/profile.d/*.sh (max allowed: #{max_timeout})" do
+    it 'should be set in at least one profile file' do
+      expect(tmout_values).not_to be_empty,
+        "No uncommented TMOUT setting found. Searched:\n\t- #{profile_files.join("\n\t- ")}"
     end
-
-    if tmout_match
-      it 'should have appropriate timeout value' do
-        actual_timeout = tmout_match[1].to_i
-        expect(actual_timeout).to be <= input('shell_session_timeout'),
-          "TMOUT is #{actual_timeout}, should be <= #{input('shell_session_timeout')}"
-      end
+    it "should be <= #{max_timeout} wherever it is set" do
+      expect(too_high).to be_empty,
+        "Files with TMOUT > #{max_timeout}:\n\t- #{too_high.map { |p, v| "#{p} (TMOUT=#{v})" }.join("\n\t- ")}"
     end
   end
 end
