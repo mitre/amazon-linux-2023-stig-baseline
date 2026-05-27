@@ -23,13 +23,20 @@ If "dmesg" does not show "NX (Execute Disable) protection" active, this is a fin
     !virtualization.system.eql?('docker')
   }
 
-  grep_output = command("grep ^flags /proc/cpuinfo | grep -Ev '([^[:alnum:]])(nx)([^[:alnum:]]|$)'").stdout.strip
-  grubby_output = command("grubby --info=ALL | grep args | grep -E '([^[:alnum:]])(noexec)([^[:alnum:]])'").stdout.strip
+  # /proc/cpuinfo flags lines that are MISSING 'nx' (each CPU prints its own line)
+  cores_missing_nx = command("grep ^flags /proc/cpuinfo | grep -Ev '([^[:alnum:]])(nx)([^[:alnum:]]|$)'").stdout.strip.split("\n").reject(&:empty?)
 
-  describe 'ExecShield' do
-    it 'is enabled on 64-bit AL2023 systems' do
-      expect(grep_output).to be_empty
-      expect(grubby_output).to be_empty
+  # grubby kernel-args lines containing 'noexec' (which would disable NX)
+  grub_noexec_lines = command("grubby --info=ALL | grep args | grep -E '([^[:alnum:]])(noexec)([^[:alnum:]])'").stdout.strip.split("\n").reject(&:empty?)
+
+  describe 'ExecShield / NX protection' do
+    it 'should have the "nx" CPU flag set on every core' do
+      expect(cores_missing_nx).to be_empty,
+        "CPU cores missing 'nx' flag:\n\t- #{cores_missing_nx.join("\n\t- ")}"
+    end
+    it 'should not have "noexec" in GRUB kernel args (which would disable NX)' do
+      expect(grub_noexec_lines).to be_empty,
+        "GRUB kernel args containing 'noexec':\n\t- #{grub_noexec_lines.join("\n\t- ")}"
     end
   end
 end

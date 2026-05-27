@@ -89,8 +89,9 @@ $ sudo reboot'
     !virtualization.system.eql?('docker')
   }
 
-  describe command('update-crypto-policies --show') do
-    its('stdout') { should match(/FIPS/) }
+  describe 'Systemwide crypto policy (update-crypto-policies --show)' do
+    subject { command('update-crypto-policies --show').stdout }
+    it { should match(/FIPS/) }
   end
 
   describe parse_config_file('/etc/crypto-policies/state/CURRENT.pol') do

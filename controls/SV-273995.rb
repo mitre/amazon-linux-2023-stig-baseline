@@ -51,13 +51,15 @@ gpgcheck=1)
     it { should exist }
   end
   rpm_gpg_keys.each do |k, v|
-    describe command(%(rpm -q --queryformat "%{SUMMARY}\\n" gpg-pubkey | grep -i "#{k}")) do
-      its('stdout') { should include k.to_s }
+    describe "Installed RPM GPG public key: #{k}" do
+      subject { command(%(rpm -q --queryformat "%{SUMMARY}\\n" gpg-pubkey)).stdout }
+      it { should include k.to_s }
     end
     next unless file(rpm_gpg_file).exist?
 
-    describe command("gpg -q --keyid-format short --with-fingerprint #{rpm_gpg_file}") do
-      its('stdout') { should include v }
+    describe "GPG fingerprint for #{k} in #{rpm_gpg_file}" do
+      subject { command("gpg -q --keyid-format short --with-fingerprint #{rpm_gpg_file}").stdout }
+      it { should include v }
     end
   end
 end

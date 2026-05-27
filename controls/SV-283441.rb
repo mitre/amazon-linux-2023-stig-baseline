@@ -43,11 +43,13 @@ Reboot the system for the changes to take effect.'
     !virtualization.system.eql?('docker')
   }
 
-  describe command('fips-mode-setup --check') do
-    its('stdout') { should match(/FIPS mode is enabled/) }
+  describe 'FIPS mode (fips-mode-setup --check)' do
+    subject { command('fips-mode-setup --check').stdout }
+    it { should match(/FIPS mode is enabled/) }
   end
 
-  describe command('update-crypto-policies --show') do
-    its('stdout.strip') { should match(/^FIPS\b/) }
+  describe 'Systemwide crypto policy (update-crypto-policies --show)' do
+    subject { command('update-crypto-policies --show').stdout.strip }
+    it { should match(/^FIPS\b/) }
   end
 end

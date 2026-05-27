@@ -35,8 +35,9 @@ Reboot the system for the changes to take effect.'
       skip 'This control is Not Applicable as FIPS is not required for this system'
     end
   else
-    describe command('fips-mode-setup --check') do
-      its('stdout.strip') { should match(/FIPS mode is enabled/) }
+    describe 'FIPS mode (fips-mode-setup --check)' do
+      subject { command('fips-mode-setup --check').stdout.strip }
+      it { should match(/FIPS mode is enabled/) }
     end
   end
 end
