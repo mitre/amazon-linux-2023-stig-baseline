@@ -27,16 +27,23 @@ $ActionSendStreamDriverAuthMode x509/name'
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^\\$ActionSendStreamDriverAuthMode' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match %r{\$ActionSendStreamDriverAuthMode\s+x509/name} }
+  if input('alternative_logging_method').to_s.empty?
+    rsyslog_directives = input('logging_conf_files')
+      .select { |path| file(path).exist? }
+      .flat_map { |path| file(path).content.lines }
+      .map(&:chomp)
+      .reject { |line| line.strip.empty? || line.strip.start_with?('#') }
+      .join("\n")
+
+    parsed_directives = parse_config(rsyslog_directives, assignment_regex: /^\s*(\$\S+)\s+(\S+)/)
+
+    describe 'rsyslog $ActionSendStreamDriverAuthMode (remote-server authentication mode)' do
+      subject { parsed_directives['$ActionSendStreamDriverAuthMode'] }
+      it { should eq 'x509/name' }
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'rsyslog audit log transport (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm how rsyslog authenticates the remote logging server."
     end
   end
 end

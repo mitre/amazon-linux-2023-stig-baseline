@@ -34,22 +34,27 @@ URL=https://[server.domain]:[port]'
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
+  if input('alternative_logging_method').to_s.empty?
     journal_upload_conf = '/etc/systemd/journal-upload.conf'
 
     describe file(journal_upload_conf) do
       it { should exist }
     end
 
-    %w[URL ServerKeyFile ServerCertificateFile TrustedCertificateFile].each do |key|
-      describe "journal-upload.conf setting #{key}" do
-        subject { command("grep -E '^\\s*#{key}\\s*=\\s*\\S+' #{journal_upload_conf}").stdout.strip }
-        it { should_not be_empty }
+    if file(journal_upload_conf).exist?
+      upload_section = parse_config_file(journal_upload_conf).params['Upload'] || {}
+
+      %w[URL ServerKeyFile ServerCertificateFile TrustedCertificateFile].each do |key|
+        describe "journal-upload.conf [Upload] #{key}" do
+          subject { upload_section[key] }
+          it { should_not be_nil }
+          it { should_not be_empty }
+        end
       end
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'systemd journal-upload (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm how audit records are off-loaded."
     end
   end
 end

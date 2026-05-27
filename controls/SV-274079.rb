@@ -27,23 +27,31 @@ If the value of the "$DefaultNetstreamDriver" option is not set to "ossl" or the
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
-    # Title says "gtls" (RHEL9 heritage) but AL2023 check text says "ossl"; both are valid TLS netstream drivers
-    netstream_stdout = command("grep -i '^\\$DefaultNetstreamDriver' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
+  if input('alternative_logging_method').to_s.empty?
+    rsyslog_directives = input('logging_conf_files')
+      .select { |path| file(path).exist? }
+      .flat_map { |path| file(path).content.lines }
+      .map(&:chomp)
+      .reject { |line| line.strip.empty? || line.strip.start_with?('#') }
+      .join("\n")
 
+    parsed_directives = parse_config(rsyslog_directives, assignment_regex: /^\s*(\$\S+)\s+(\S+)/)
+    netstream_driver = parsed_directives['$DefaultNetstreamDriver']
+
+    # Title says "gtls" (RHEL9 heritage) but AL2023 check text says "ossl"; both are valid TLS netstream drivers
     describe.one do
-      describe 'rsyslog DefaultNetstreamDriver (ossl)' do
-        subject { netstream_stdout }
-        it { should match(/\$DefaultNetstreamDriver\s+ossl/) }
+      describe 'rsyslog $DefaultNetstreamDriver (ossl)' do
+        subject { netstream_driver }
+        it { should eq 'ossl' }
       end
-      describe 'rsyslog DefaultNetstreamDriver (gtls)' do
-        subject { netstream_stdout }
-        it { should match(/\$DefaultNetstreamDriver\s+gtls/) }
+      describe 'rsyslog $DefaultNetstreamDriver (gtls)' do
+        subject { netstream_driver }
+        it { should eq 'gtls' }
       end
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'rsyslog audit log transport (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm how rsyslog encrypts off-loaded audit records."
     end
   end
 end
