@@ -25,13 +25,13 @@ Edit "/etc/audit/auditd.conf" and ensure the parameter "space_left = 25%" is con
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
+  if input('alternative_logging_method').to_s.empty?
     describe auditd_conf do
       its('space_left.to_i') { should cmp >= input('audit_storage_threshold') }
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'auditd space_left (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm what storage threshold and alerting the alternative logging implementation uses."
     end
   end
 end
