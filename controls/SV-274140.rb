@@ -24,7 +24,25 @@ dictcheck=1'
   tag 'host'
   tag 'container'
 
-  describe parse_config_file('/etc/security/pwquality.conf') do
-    its('dictcheck') { should eq '1' }
+  setting = 'dictcheck'
+  pwquality_files = ['/etc/security/pwquality.conf'] + Dir.glob('/etc/security/pwquality.conf.d/*.conf')
+
+  values_found = pwquality_files.flat_map do |path|
+    next [] unless file(path).exist?
+    parsed = parse_config_file(path).params
+    parsed.key?(setting) ? [[path, parsed[setting].to_s]] : []
+  end
+
+  bad_values = values_found.reject { |_path, v| v == '1' }
+
+  describe "Password quality setting '#{setting}'" do
+    it 'should be configured in at least one pwquality config file' do
+      expect(values_found).not_to be_empty,
+        "'#{setting}' not found (or commented out) in any pwquality file. Searched:\n\t- #{pwquality_files.join("\n\t- ")}"
+    end
+    it "should be set to '1' wherever it is set" do
+      expect(bad_values).to be_empty,
+        "Files with '#{setting}' != '1':\n\t- #{bad_values.map { |p, v| "#{p} (#{v})" }.join("\n\t- ")}"
+    end
   end
 end

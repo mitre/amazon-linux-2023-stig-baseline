@@ -30,7 +30,26 @@ Remove any configurations that conflict with the above value.'
   tag 'host'
   tag 'container'
 
-  describe parse_config_file('/etc/security/pwquality.conf') do
-    its('minlen.to_i') { should cmp >= input('pass_min_len') }
+  setting = 'minlen'
+  expected_min = input('pass_min_len')
+  pwquality_files = ['/etc/security/pwquality.conf'] + Dir.glob('/etc/security/pwquality.conf.d/*.conf')
+
+  values_found = pwquality_files.flat_map do |path|
+    next [] unless file(path).exist?
+    parsed = parse_config_file(path).params
+    parsed.key?(setting) ? [[path, parsed[setting].to_i]] : []
+  end
+
+  low_values = values_found.select { |_path, v| v < expected_min }
+
+  describe "Password quality setting '#{setting}'" do
+    it 'should be configured in at least one pwquality config file' do
+      expect(values_found).not_to be_empty,
+        "'#{setting}' not found (or commented out) in any pwquality file. Searched:\n\t- #{pwquality_files.join("\n\t- ")}"
+    end
+    it "should be >= #{expected_min} wherever it is set" do
+      expect(low_values).to be_empty,
+        "Files with '#{setting}' < #{expected_min}:\n\t- #{low_values.map { |p, v| "#{p} (#{v})" }.join("\n\t- ")}"
+    end
   end
 end
