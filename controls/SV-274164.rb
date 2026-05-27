@@ -33,10 +33,12 @@ $ sudo find / -type d -perm -0002 ! -perm -1000 -exec chmod +t {} +'
 
   partitions = etc_fstab.params.map { |partition| partition['mount_point'] }.uniq
 
-  ww_dirs = command("find #{partitions.join(' ')} -xdev -type d -perm -0002 ! -perm -1000 -print 2>/dev/null").stdout.split("\n")
+  ww_dirs = command("find #{partitions.join(' ')} -xdev -type d -perm -0002 ! -perm -1000 -print 2>/dev/null").stdout.split("\n").reject(&:empty?)
 
   describe 'World-writable directories without the sticky bit' do
-    subject { ww_dirs }
-    it { should be_empty }
+    it 'should not exist' do
+      failure_message = "World-writable directories missing the sticky bit (run: chmod +t <dir>):\n\t- #{ww_dirs.join("\n\t- ")}"
+      expect(ww_dirs).to be_empty, failure_message
+    end
   end
 end

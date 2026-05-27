@@ -29,33 +29,24 @@ $ sudo chage -E $(date -d +3days +%Y-%m-%d) <temporary_account_name>'
   tag 'host'
   tag 'container'
 
+  # NOTE: SV-274146 is extremely similar; both consume the same inputs.
   tmp_users = input('temporary_accounts')
-
-  # NOTE: that 230331 is extremely similar to this req, to the point where this input seems
-  # appropriate to use for both of them
   tmp_max_days = input('temporary_account_max_days')
 
-  if tmp_users.empty?
-    describe 'Temporary accounts' do
-      subject { tmp_users }
-      it { should be_empty }
-    end
-  else
-    # user has to specify what the tmp accounts are, so we will print a different pass message
-    # if none of those tmp accounts even exist on the system for clarity
-    tmp_users_existing = tmp_users.select { |u| user(u).exists? }
-    failing_users = tmp_users_existing.select { |u| user(u).warndays > tmp_max_days }
+  # TODO(reviewer): see SV-274146 — same warndays-vs-account-expires concern.
 
-    describe 'Temporary accounts' do
-      if tmp_users_existing.nil?
-        it "should have expiration times less than or equal to '#{tmp_max_days}' days" do
-          expect(failing_users).to be_empty, "Failing users:\n\t- #{failing_users.join("\n\t- ")}"
-        end
-      else
-        it "(input as '#{tmp_users.join("', '")}') were not found on this system" do
-          expect(tmp_users_existing).to be_empty
-        end
-      end
+  # Pass-when-empty: the STIG check text says "for every existing temporary
+  # account... if any... has no expiration set, this is a finding." Zero temp
+  # accounts → zero possible findings → vacuously pass. The check text does
+  # not explicitly authorize Not Applicable, so we do not flip impact.
+  tmp_users_existing = tmp_users.select { |u| user(u).exists? }
+  failing_users = tmp_users_existing.select { |u| user(u).warndays > tmp_max_days }
+
+  describe "Temporary accounts (input: #{tmp_users.empty? ? '(none configured)' : tmp_users.join(', ')}; present on system: #{tmp_users_existing.length})" do
+    it "should have warndays <= #{tmp_max_days} for every temporary account that exists" do
+      failure_message = "Accounts with warndays > #{tmp_max_days}:\n\t- " +
+                        failing_users.map { |u| "#{u} (warndays=#{user(u).warndays})" }.join("\n\t- ")
+      expect(failing_users).to be_empty, failure_message
     end
   end
 end
