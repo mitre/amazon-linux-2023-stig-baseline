@@ -33,7 +33,18 @@ even_deny_root'
     !virtualization.system.eql?('docker')
   }
 
-  describe command('grep even_deny_root /etc/security/faillock.conf').stdout.strip do
-    it { should match(/^even_deny_root$/) }
+  faillock_conf = file('/etc/security/faillock.conf')
+
+  describe faillock_conf do
+    it { should exist }
+  end
+
+  if faillock_conf.exist?
+    active_lines = faillock_conf.content.lines.map(&:strip).reject { |l| l.empty? || l.start_with?('#') }
+    describe '/etc/security/faillock.conf' do
+      it 'should set "even_deny_root" (uncommented)' do
+        expect(active_lines).to include('even_deny_root'), "Missing or commented out. Active lines:\n\t- #{active_lines.join("\n\t- ")}"
+      end
+    end
   end
 end

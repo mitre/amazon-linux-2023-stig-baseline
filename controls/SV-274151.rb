@@ -33,14 +33,7 @@ If necessary, create a "wheel" group and add administrative users to the group.)
     !virtualization.system.eql?('docker')
   }
 
-  pam_string = 'pam_wheel'
-  pam_file = '/etc/pam.d/su'
-
-  pam_rules_check = command("grep #{pam_string} #{pam_file}").stdout.strip.split("\n")
-
-  describe 'PAM rules' do
-    it "should include an instance of #{pam_string} in #{pam_file}" do
-      expect(pam_rules_check).not_to be_empty
-    end
+  describe pam('/etc/pam.d/su') do
+    its('lines') { should match_pam_rule('auth required pam_wheel.so').all_with_args('use_uid') }
   end
 end
