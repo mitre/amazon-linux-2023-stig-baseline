@@ -25,8 +25,12 @@ $ sudo chgrp root [FILE]'
   tag 'host'
   tag 'container'
 
-  allowed_groups_expr = input('required_system_accounts').map { |acct| "-group #{acct}" }.join(' -o ')
-  required_system_account_caveats = "! \\( #{allowed_groups_expr} \\)"
+  allowed_groups = input('required_system_accounts')
+  required_system_account_caveats = if allowed_groups.empty?
+                                      '! -group root'
+                                    else
+                                      "! \\( #{allowed_groups.map { |acct| "-group #{acct}" }.join(' -o ')} \\)"
+                                    end
 
   failing_files = command("find -L #{input('system_command_dirs').join(' ')} #{required_system_account_caveats}").stdout.split("\n")
 

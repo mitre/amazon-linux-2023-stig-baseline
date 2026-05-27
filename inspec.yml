@@ -546,10 +546,10 @@ inputs:
     value: 3
 
   # SV-274156
-  - name: lockout_time
-    description: Minimum amount of time account must be locked out after failed logins. '0' indicates an account should not unlock until reset by an admin.
+  - name: fail_interval
+    description: Maximum acceptable fail_interval in seconds. Consecutive failed logins within this window trigger lockout. STIG requires 900 or less (but not 0).
     type: Numeric
-    value: 0
+    value: 900
 
   # SV-274157
   - name: centralized_account_mgmt

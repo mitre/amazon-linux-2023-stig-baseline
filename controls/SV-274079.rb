@@ -28,11 +28,18 @@ If the value of the "$DefaultNetstreamDriver" option is not set to "ossl" or the
   }
 
   if input('alternative_logging_method') == ''
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^\\$DefaultNetstreamDriver' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match(/\$DefaultNetstreamDriver\s+(gtls|ossl)/) }
+    # Title says "gtls" (RHEL9 heritage) but AL2023 check text says "ossl"; both are valid TLS netstream drivers
+    netstream_stdout = command("grep -i '^\\$DefaultNetstreamDriver' #{input('logging_conf_files').join(' ')} | awk -F ':' '{ print $2 }'").stdout
+
+    describe.one do
+      describe 'rsyslog DefaultNetstreamDriver (ossl)' do
+        subject { netstream_stdout }
+        it { should match(/\$DefaultNetstreamDriver\s+ossl/) }
+      end
+      describe 'rsyslog DefaultNetstreamDriver (gtls)' do
+        subject { netstream_stdout }
+        it { should match(/\$DefaultNetstreamDriver\s+gtls/) }
+      end
     end
   else
     describe 'manual check' do

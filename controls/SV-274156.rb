@@ -35,9 +35,10 @@ fail_interval = 900'
   tag 'host'
   tag 'container'
 
-  lockout_time = input('lockout_time')
+  max_fail_interval = input('fail_interval')
 
   describe parse_config_file('/etc/security/faillock.conf') do
-    its('unlock_time') { should cmp lockout_time }
+    its('fail_interval') { should cmp <= max_fail_interval }
+    its('fail_interval') { should_not cmp 0 }
   end
 end
