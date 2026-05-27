@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "embedded",
-  "dolt_database": "amazon_linux_2023_stig_baseline",
-  "project_id": "44e0b966-e5b1-459f-aeab-4b725304c482"
-}

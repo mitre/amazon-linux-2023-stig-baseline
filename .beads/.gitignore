@@ -73,10 +73,11 @@ backup/
 *.db-shm
 db.sqlite
 bd.db
-# NOTE: Do NOT add negation patterns here.
-# They would override fork protection in .git/info/exclude.
-# Config files (metadata.json, config.yaml) are tracked by git by default
-# since no pattern above ignores them.
+# Machine-local config (Dolt mode, server host/port, sync remote).
+# Each contributor runs their own Dolt setup (shared-server vs embedded).
+# Run `bd init` on fresh clones to generate these for your environment.
+config.yaml
+metadata.json
 
 # Embedded Dolt workspace (created at runtime, never committed)
 embeddeddolt/
