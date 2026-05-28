@@ -31,6 +31,10 @@ $ sudo dnf install -y opensc'
     !virtualization.system.eql?('docker')
   }
 
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
   if input('smart_card_enabled')
     describe package('opensc') do
       it { should be_installed }

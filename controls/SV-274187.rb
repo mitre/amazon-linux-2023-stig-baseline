@@ -29,7 +29,19 @@ $ sudo augenrules --load'
   only_if('This control is Not Applicable to containers', impact: 0.0) {
     !virtualization.system.eql?('docker')
   }
-  describe command('grep -i immutable /etc/audit/audit.rules') do
-    its('stdout.strip') { should cmp '--loginuid-immutable' }
+
+  audit_rules = file('/etc/audit/audit.rules')
+
+  describe audit_rules do
+    it { should exist }
+  end
+
+  if audit_rules.exist?
+    active_rules = audit_rules.content.lines.map(&:strip).reject { |l| l.empty? || l.start_with?('#') }
+    describe '/etc/audit/audit.rules (auditd rule loader)' do
+      it 'should contain an active "--loginuid-immutable" rule' do
+        expect(active_rules).to include('--loginuid-immutable'), "Missing or commented out. Active rules:\n\t- #{active_rules.join("\n\t- ")}"
+      end
+    end
   end
 end

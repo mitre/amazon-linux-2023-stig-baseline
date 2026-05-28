@@ -4,7 +4,6 @@
 # itself, not in the inputs we feed the scanner. Tune per-input as the
 # hardened image's actual posture diverges from the vanilla one.
 
-disable_slow_controls: false
 data_at_rest_exempt: false
 smart_card_enabled: false
 external_firewall: false

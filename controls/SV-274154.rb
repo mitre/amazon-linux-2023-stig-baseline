@@ -23,7 +23,10 @@ deny = 3'
   tag cci: ['CCI-000044', 'CCI-002238']
   tag nist: ['AC-7 a', 'AC-7 b']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   describe parse_config_file('/etc/security/faillock.conf') do
     its('deny') { should cmp <= input('unsuccessful_attempts') }

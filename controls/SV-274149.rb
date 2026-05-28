@@ -28,7 +28,10 @@ The recommendation is 35 days, but a lower value is acceptable.'
   tag cci: ['CCI-000795', 'CCI-003627', 'CCI-003628']
   tag nist: ['IA-4 e', 'AC-2 (3) (a)', 'AC-2 (3) (b)']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   days_of_inactivity = input('days_of_inactivity')
 

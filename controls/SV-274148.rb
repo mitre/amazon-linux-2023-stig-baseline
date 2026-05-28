@@ -21,16 +21,19 @@ $ sudo chage -M 60 [user]'
   tag cci: ['CCI-000199', 'CCI-004066']
   tag nist: ['IA-5 (1) (d)', 'IA-5 (1) (h)']
   tag 'host'
-  tag 'container'
 
-  value = input('pass_max_days')
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
-  bad_users = users.where { uid >= 1000 }.where { value > 60 or maxdays.negative? }.usernames
+  expected_maxdays = input('pass_max_days')
+
+  bad_users = users.where { uid >= 1000 }.where { maxdays.negative? || maxdays > expected_maxdays }.usernames
   in_scope_users = bad_users - input('exempt_home_users')
 
-  describe 'Users are not be able' do
-    it "to retain passwords for more then #{value} day(s)" do
-      failure_message = "The following users can update their password more then every #{value} day(s): #{in_scope_users.join(', ')}"
+  describe 'Interactive users' do
+    it "must have a maximum password age of #{expected_maxdays} days or fewer (and non-negative)" do
+      failure_message = "The following users have a non-compliant maxdays (> #{expected_maxdays} or negative): #{in_scope_users.join(', ')}"
       expect(in_scope_users).to be_empty, failure_message
     end
   end

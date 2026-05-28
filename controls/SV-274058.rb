@@ -53,24 +53,30 @@ Note: Systemwide crypto policies are applied on application startup. It is recom
   crypto_policies_dir = '/etc/crypto-policies/back-ends'
   expected_link_path_dir = '/usr/share/crypto-policies/FIPS'
 
-  crypto_policies = command("ls -l #{crypto_policies_dir} | awk '{ print $9 }'").stdout.strip.split("\n")
+  crypto_policy_files = Dir.glob("#{crypto_policies_dir}/*").map { |p| File.basename(p) }
 
   failing_crypto_policies = {}
 
-  crypto_policies.each do |crypto_policy|
+  crypto_policy_files.each do |crypto_policy|
+    # Per STIG check text: "nss.config must not be hyperlinked" — it is the
+    # only entry expected to be a regular file rather than a symlink.
+    next if crypto_policy == 'nss.config'
+
     service = "#{crypto_policies_dir}/#{crypto_policy}"
     link_path = file(service).link_path
 
     if link_path.nil?
-      failing_crypto_policies[service] = 'No link path found'
+      failing_crypto_policies[service] = 'not a symlink (expected symlink into FIPS/)'
     elsif !link_path.match?(/^#{expected_link_path_dir}/)
       failing_crypto_policies[service] = link_path
     end
   end
 
-  describe 'Crypto policies' do
-    it 'should link to the correct libriries' do
-      expect(failing_crypto_policies).to be_empty, "Failing crypto policies:\n\t- #{failing_crypto_policies}"
+  describe 'Crypto policies (/etc/crypto-policies/back-ends)' do
+    it "should link to files under #{expected_link_path_dir}" do
+      failure_message = "Crypto policy symlinks not pointing into #{expected_link_path_dir}:\n\t- " +
+                        failing_crypto_policies.map { |k, v| "#{k} -> #{v}" }.join("\n\t- ")
+      expect(failing_crypto_policies).to be_empty, failure_message
     end
   end
 

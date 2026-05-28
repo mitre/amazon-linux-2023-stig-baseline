@@ -43,9 +43,11 @@ $ sudo systemctl enable --now rsyslog'
     !virtualization.system.eql?('docker')
   }
 
-  freq = input('audit_flush_threshold')
+  describe package('rsyslog') do
+    it { should be_installed }
+  end
 
-  describe auditd_conf do
-    its('freq.to_i') { should cmp >= freq }
+  describe service('rsyslog') do
+    it { should be_enabled }
   end
 end

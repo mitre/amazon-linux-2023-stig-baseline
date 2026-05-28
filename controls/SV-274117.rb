@@ -29,9 +29,14 @@ $ sudo chown root /var/log/audit'
   tag cci: ['CCI-001314']
   tag nist: ['SI-11 b']
   tag 'host'
-  tag 'container'
 
-  describe directory('/var/log') do
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  audit_log_dir = auditd_conf('/etc/audit/auditd.conf').log_file.rpartition('/').first
+
+  describe directory(audit_log_dir) do
     it { should exist }
     it { should be_owned_by 'root' }
   end

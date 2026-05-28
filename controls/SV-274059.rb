@@ -26,6 +26,10 @@ pam_cert_auth = True'
   tag nist: ['IA-2 (1)', 'IA-2 (11)', 'IA-2 (6) (a)', 'IA-2 (6) (b)']
   tag 'host'
 
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
   only_if('If the System Administrator demonstrates the use of an approved alternate multifactor authentication method, this requirement is not applicable.', impact: 0.0) {
     input('smart_card_enabled')
   }

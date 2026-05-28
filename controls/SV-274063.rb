@@ -46,8 +46,12 @@ ACM will handle the certificate lifecycle management, including validation and t
   tag 'host'
   tag 'container'
 
-  only_if('If the System Administrator demonstrates the use of an approved alternate multifactor authentication method, this requirement is not applicable.', impact: 0.0) {
-    !input('smart_card_enabled')
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
+  only_if('Smart-card authentication is not enabled on this system; DoD root CA validation is only applicable when smart cards are in use.', impact: 0.0) {
+    input('smart_card_enabled')
   }
 
   root_ca_file = input('root_ca_file') # This gets the entire hash from input

@@ -32,11 +32,11 @@ gpgcheck=1'
   tag 'host'
   tag 'container'
 
-  repo_def_files = command('ls /etc/yum.repos.d/*.repo').stdout.split("\n")
+  repo_def_files = Dir.glob('/etc/yum.repos.d/*.repo')
 
   if repo_def_files.empty?
-    describe 'No repos found in /etc/yum.repos.d/*.repo' do
-      skip 'No repos found in /etc/yum.repos.d/*.repo'
+    describe 'Yum repository configuration' do
+      skip 'No .repo files found in /etc/yum.repos.d/. Manual review: confirm how this system installs packages (system-release / dnf config).'
     end
   else
     # pull out all repo definitions from all files into one big hash

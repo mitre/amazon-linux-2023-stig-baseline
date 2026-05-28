@@ -28,7 +28,7 @@ $ sudo dnf install -y rsyslog-openssl'
   tag nist: ['IA-7']
   tag 'host'
 
-  describe file('/etc/crypto-policies/back-ends/krb5.config') do
-    its('link_path') { should match(%r{/usr/share/crypto-policies/FIPS}) }
+  describe package('rsyslog-openssl') do
+    it { should be_installed }
   end
 end

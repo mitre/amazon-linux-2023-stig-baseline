@@ -28,6 +28,10 @@ $ sudo dnf install -y pcsc-lite'
     !virtualization.system.eql?('docker')
   }
 
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
+  }
+
   if input('smart_card_enabled')
     describe package('pcsc-lite') do
       it { should be_installed }

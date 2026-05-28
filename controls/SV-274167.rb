@@ -36,22 +36,17 @@ GRUB_CMDLINE_LINUX="audit=1"'
   tag nist: ['AU-12 a', 'AU-3 a', 'AU-3 (1)', 'AU-12 c', 'MA-4 (1) (a)', 'AU-14 (1)']
   tag 'host'
 
-  audit_command = '/usr/bin/chacl'
-
   only_if('This control is Not Applicable to containers', impact: 0.0) {
     !virtualization.system.eql?('docker')
   }
 
-  describe 'Command' do
-    it "#{audit_command} is audited properly" do
-      audit_rule = auditd.file(audit_command)
-      expect(audit_rule).to exist
-      expect(audit_rule.action.uniq).to cmp 'always'
-      expect(audit_rule.list.uniq).to cmp 'exit'
-      expect(audit_rule.fields.flatten).to include('perm=x', 'auid>=1000', 'auid!=-1')
-      expect(audit_rule.key.uniq).to include(input('audit_rule_keynames').merge(input('audit_rule_keynames_overrides'))[audit_command])
-      auditctl_output = command("sudo auditctl -l | grep #{audit_command}").stdout.strip
-      expect(auditctl_output).to match(/-S\s+all\b/)
+  grub_stdout = command('grubby --info=ALL').stdout
+  setting = /audit\s*=\s*1/
+
+  describe 'GRUB configuration' do
+    it 'should enable auditing of processes that start prior to the audit daemon' do
+      expect(parse_config(grub_stdout)['args']).to match(setting), 'Current GRUB configuration does not enable audit=1'
+      expect(parse_config_file('/etc/default/grub')['GRUB_CMDLINE_LINUX']).to match(setting), 'audit=1 not configured to persist between kernel updates'
     end
   end
 end

@@ -29,10 +29,12 @@ $ sudo find / -xdev -type d -perm -0002 ! -user root ! -uid +999 -exec chown roo
 
   partitions = etc_fstab.params.map { |partition| partition['mount_point'] }.uniq
 
-  ww_dirs = command("find #{partitions.join(' ')} -xdev -type d -perm -0002 ! -user root ! -uid +999 -print 2>/dev/null").stdout.split("\n")
+  ww_dirs = command("find #{partitions.join(' ')} -xdev -type d -perm -0002 ! -user root ! -uid +999 -print 2>/dev/null").stdout.split("\n").reject(&:empty?)
 
-  describe 'World-writable directories not owned by root or a uid > 999' do
-    subject { ww_dirs }
-    it { should be_empty }
+  describe 'World-writable directories not owned by root or a uid > 999 (app account)' do
+    it 'should not exist' do
+      failure_message = "World-writable directories owned by a system uid <= 999 that is not root (run: chown root:root <dir>):\n\t- #{ww_dirs.join("\n\t- ")}"
+      expect(ww_dirs).to be_empty, failure_message
+    end
   end
 end

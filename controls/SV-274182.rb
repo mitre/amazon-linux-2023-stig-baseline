@@ -25,21 +25,19 @@ $ sudo systemctl mask --now autofs.service'
   tag nist: ['IA-3']
   tag 'host'
 
-  only_if('This control is Not Applicable to containers or virtualized environments', impact: 0.0) {
-    !virtualization.system.eql?('docker') || !virtualization.role.eql?('guest')
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
   }
 
-  peripherals_package = input('peripherals_package')
-
-  if peripherals_package == 'usbguard'
-    describe command('usbguard list-rules') do
-      its('stdout') { should_not be_empty }
-      its('exit_status') { should eq 0 }
+  if service('autofs').installed?
+    describe service('autofs') do
+      it { should_not be_enabled }
+      it { should_not be_running }
     end
   else
-    describe 'Non-standard package' do
-      it 'is handling peripherals' do
-        expect(peripherals_package).to exist
+    describe 'autofs service' do
+      it 'is not installed' do
+        expect(service('autofs').installed?).to eq(false)
       end
     end
   end

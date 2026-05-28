@@ -30,16 +30,13 @@ The audit daemon must be restarted for changes to take effect.'
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
-    describe 'rsyslog configuration' do
-      subject {
-        command("grep -i '^$ActionSendStreamDriverAuthMode' #{input('logging_conf_files').join(' ')}  | awk -F ':' '{ print $2 }'").stdout
-      }
-      it { should match %r{\$ActionSendStreamDriverAuthMode\s+x509/name} }
+  if input('alternative_logging_method').to_s.empty?
+    describe parse_config_file('/etc/audit/auditd.conf') do
+      its('name_format') { should be_in %w[hostname fqd numeric] }
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'auditd name_format (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm how off-loaded audit logs are labeled by the alternative implementation."
     end
   end
 end

@@ -58,12 +58,6 @@ inputs:
     value:
       "Amazon Linux": "B21C 50FA 44A9 9720 EAA7  2F7F E951 904A D832 C631"
 
-  # SV-274004
-  - name: ipv4_enabled
-    description: Set to 'true' if IPv4 is enabled on the system.
-    type: Boolean
-    value: true
-
   # SV-274007
   - name: ftp_required
     description: Set to true if there is a documented requirement for the target system to use FTP
@@ -77,12 +71,6 @@ inputs:
     value:
       - '/etc/sudoers'
       - '/etc/sudoers.d/*'
-
-  # SV-274020
-  - name: audit_flush_threshold
-    description: Threshold at which the audit system should flush the audit logs to disk
-    type: Numeric
-    value: 100
 
   # SV-274024, SV-274025
   - name: file_integrity_tool
@@ -111,6 +99,17 @@ inputs:
   # SV-274032
   - name: libreswan_required
     description: Set to false if there is no operational requirement for the libreswan package as per instructions in SV-274032
+    type: Boolean
+    value: true
+
+  # SV-274034, SV-274036, SV-274037, SV-274059, SV-274061, SV-274063, SV-274181
+  - name: mfa_required
+    description: |
+      Set to false on systems where MFA is not operationally applicable
+      (e.g., headless service VMs, build agents, single-tenant infrastructure
+      with no interactive logins). When false, all MFA infrastructure
+      controls become Not Applicable. The decision to set this false must be
+      documented and approved by the ISSO/AO. Default: true.
     type: Boolean
     value: true
 
@@ -295,6 +294,15 @@ inputs:
     description: 'The method used to provide real-time information to the ISSO or AO'
     type: String
     value: email
+
+  # SV-274107
+  - name: disk_full_action
+    description: 'Allowed values for the auditd disk_full_action setting when the audit storage volume is full. STIG accepts SYSLOG, SINGLE, or HALT.'
+    type: Array
+    value:
+      - SYSLOG
+      - SINGLE
+      - HALT
 
   # SV-274078
   - name: action_send_stream_driver_mode
@@ -547,10 +555,10 @@ inputs:
     value: 3
 
   # SV-274156
-  - name: lockout_time
-    description: Minimum amount of time account must be locked out after failed logins. '0' indicates an account should not unlock until reset by an admin.
+  - name: fail_interval
+    description: Maximum acceptable fail_interval in seconds. Consecutive failed logins within this window trigger lockout. STIG requires 900 or less (but not 0).
     type: Numeric
-    value: 0
+    value: 900
 
   # SV-274157
   - name: centralized_account_mgmt
@@ -559,16 +567,20 @@ inputs:
     value: false
 
   # SV-274157
-  - name: fail_interval
-    description: Interval of time in which the consecutive failed logon attempts must occur in order for the account to be locked out (time in seconds)
-    type: Numeric
-    value: 900
-
-  # SV-274157
   - name: security_faillock_conf
     description: The security faillock configuration file
     type: String
     value: /etc/security/faillock.conf
+
+  # SV-274157
+  - name: unlock_time
+    description: |
+      Value (in seconds) for the faillock 'unlock_time' setting. The STIG
+      requires accounts to remain locked until released by an administrator,
+      which faillock represents as unlock_time = 0. Override only if your
+      organization has a documented exemption permitting time-based unlock.
+    type: Numeric
+    value: 0
 
   # SV-274160
   - name: non_interactive_shells
@@ -588,15 +600,6 @@ inputs:
     type: Numeric
     value: 10000
 
-  # SV-274165
-  - name: ww_dir_approved_owners
-    description: Owners approved to own a world-writeable public directory
-    type: Array
-    value:
-      - root
-      - sys
-      - bin
-
   # SV-274142
   - name: shell_session_timeout
     description: Maximum TMOUT value (in seconds) for interactive command shell sessions
@@ -615,14 +618,14 @@ inputs:
     type: Numeric
     value: 8192
 
-  # SV-274182
-  - name: peripherals_package
-    description: "The name of the package used to managed connected peripherals"
+  # SV-274175
+  - name: authoritative_timeserver
+    description: |
+      Regular expression or substring matching an organization-approved
+      authoritative NTP time source (e.g., the USNO/DoD time servers).
+      The 'server' entries in /etc/chrony.conf are matched against this
+      value. Leave blank to skip the source-of-truth match; the
+      maxpoll-interval portion of SV-274175 will still run.
     type: String
-    value: "usbguard"
+    value: ''
 
-  # SV-283441
-  - name: approved_crypto_backend
-    description: FIPS 140-2/140-3 approved cryptographic module conf file
-    type: String
-    value: /etc/crypto-policies/back-ends/libreswan.config

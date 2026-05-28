@@ -33,12 +33,10 @@ $ sudo firewall-cmd --permanent --add-service=service_name'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !(virtualization.system.eql?('docker') && !file('/etc/chrony.conf').exist?)
+    !virtualization.system.eql?('docker')
   }
 
-  chrony_conf = ntp_conf('/etc/chrony.conf')
-
-  describe chrony_conf do
-    its('cmdport') { should cmp 0 }
+  describe 'Manual review required' do
+    skip "This check requires manual comparison of 'firewall-cmd --list-all' against the site's PPSM CLSA. Ask the administrator to provide the CLSA and verify the firewall ruleset matches it."
   end
 end

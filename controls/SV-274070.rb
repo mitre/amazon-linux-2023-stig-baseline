@@ -32,13 +32,13 @@ The audit daemon must be restarted for changes to take effect.'
     !virtualization.system.eql?('docker')
   }
 
-  if input('alternative_logging_method') == ''
+  if input('alternative_logging_method').to_s.empty?
     describe parse_config_file('/etc/audit/auditd.conf') do
       its('overflow_action') { should match(/syslog$|single$|halt$/i) }
     end
   else
-    describe 'manual check' do
-      skip 'Manual check required. Ask the administrator to indicate how logging is done for this system.'
+    describe 'auditd overflow_action (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm what action the alternative logging implementation takes when the internal event queue fills."
     end
   end
 end

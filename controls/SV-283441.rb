@@ -43,13 +43,13 @@ Reboot the system for the changes to take effect.'
     !virtualization.system.eql?('docker')
   }
 
-  expected_value = input('approved_crypto_backend')
+  describe 'FIPS mode (fips-mode-setup --check)' do
+    subject { command('fips-mode-setup --check').stdout }
+    it { should match(/FIPS mode is enabled/) }
+  end
 
-  setting_check = command('grep include /etc/ipsec.conf /etc/ipsec.d/*.conf').stdout.strip.match?(/^.*:?[^#]include\s*#{expected_value}$/)
-
-  describe 'RHEL9 IPsec config' do
-    it "should include the conf file '#{expected_value}'" do
-      expect(setting_check).to eq(true), "Conf file '#{expected_value}' not included in ipsec config"
-    end
+  describe 'Systemwide crypto policy (update-crypto-policies --show)' do
+    subject { command('update-crypto-policies --show').stdout.strip }
+    it { should match(/^FIPS\b/) }
   end
 end

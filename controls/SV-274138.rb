@@ -28,23 +28,25 @@ ocredit = -1'
   tag 'host'
   tag 'container'
 
-  # value = input('ocredit')
   setting = 'ocredit'
+  pwquality_files = ['/etc/security/pwquality.conf'] + Dir.glob('/etc/security/pwquality.conf.d/*.conf')
 
-  describe 'pwquality.conf settings' do
-    let(:config) { parse_config_file('/etc/security/pwquality.conf', multiple_values: true) }
-    let(:setting_value) { config.params[setting].is_a?(Integer) ? [config.params[setting]] : Array(config.params[setting]) }
+  values_found = pwquality_files.flat_map do |path|
+    next [] unless file(path).exist?
+    parsed = parse_config_file(path).params
+    parsed.key?(setting) ? [[path, parsed[setting].to_i]] : []
+  end
 
-    it "has `#{setting}` set" do
-      expect(setting_value).not_to be_empty, "#{setting} is not set in pwquality.conf"
+  bad_values = values_found.reject { |_path, v| v <= 0 }
+
+  describe "Password quality setting '#{setting}'" do
+    it 'should be configured in at least one pwquality config file' do
+      expect(values_found).not_to be_empty,
+        "'#{setting}' not found (or commented out) in any pwquality file. Searched:\n\t- #{pwquality_files.join("\n\t- ")}"
     end
-
-    it "only sets `#{setting}` once" do
-      expect(setting_value.length).to eq(1), "#{setting} is commented or set more than once in pwquality.conf"
-    end
-
-    it "does not set `#{setting}` to a positive value" do
-      expect(setting_value.first.to_i).to be <= 0, "#{setting} is set to a positive value in pwquality.conf"
+    it 'should be <= 0 wherever it is set' do
+      expect(bad_values).to be_empty,
+        "Files with positive '#{setting}':\n\t- #{bad_values.map { |p, v| "#{p} (#{v})" }.join("\n\t- ")}"
     end
   end
 end

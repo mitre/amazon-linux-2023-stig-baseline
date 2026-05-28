@@ -56,13 +56,19 @@ AIDE found NO differences between database and filesystem. Looks okay!!'
     !virtualization.system.eql?('docker')
   end
 
-  if file_integrity_tool == 'aide'
-    describe command('/usr/sbin/aide --check') do
-      its('stdout') { should_not include "Couldn't open file" }
-    end
-  end
-
   describe package(file_integrity_tool) do
     it { should be_installed }
+  end
+
+  if file_integrity_tool == 'aide'
+    # STIG check text: "If the output is 'Couldn't open file /var/lib/aide/aide.db.gz
+    # for reading', this is a finding." — equivalent to verifying the AIDE database
+    # has been initialized.
+    describe 'AIDE database (/var/lib/aide/aide.db.gz)' do
+      subject { file('/var/lib/aide/aide.db.gz') }
+      it 'should exist (run "aide --init" + rename to aide.db.gz to initialize)' do
+        expect(subject.exist?).to be(true), 'AIDE database not initialized. Run "sudo aide --init" then "sudo mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz".'
+      end
+    end
   end
 end

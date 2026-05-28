@@ -23,29 +23,11 @@ $ sudo dnf install -y openssl-pkcs11'
   tag nist: ['IA-2 (11)', 'IA-2 (12)', 'IA-2 (6) (a)']
   tag 'host'
 
-  only_if('This requirement is Not Applicable inside the container', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+  only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
+    input('mfa_required') == true
   }
 
-  if input('alternate_mfa_method').nil?
-    describe 'Manual Review' do
-      skip "Alternate MFA method selected:\t\nConsult with ISSO to determine that alternate MFA method is approved; manually review system to ensure alternate MFA method is functioning"
-    end
-  else
-    sssd_conf_files = input('sssd_conf_files')
-    sssd_conf_contents = ini({ command: "cat #{input('sssd_conf_files').join(' ')}" })
-    sssd_certificate_verification = input('sssd_certificate_verification')
-
-    describe 'SSSD' do
-      it 'should be installed and enabled' do
-        expect(service('sssd')).to be_installed.and be_enabled
-        expect(sssd_conf_contents.params).to_not be_empty, "SSSD configuration files not found or have no content; files checked:\n\t- #{sssd_conf_files.join("\n\t- ")}"
-      end
-      if sssd_conf_contents.params.nil?
-        it "should configure certificate_verification to be '#{sssd_certificate_verification}'" do
-          expect(sssd_conf_contents.sssd.certificate_verification).to eq(sssd_certificate_verification)
-        end
-      end
-    end
+  describe package('openssl-pkcs11') do
+    it { should be_installed }
   end
 end

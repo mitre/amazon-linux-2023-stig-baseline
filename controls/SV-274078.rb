@@ -23,11 +23,27 @@ $ActionSendStreamDriverMode 1'
   tag nist: ['AU-4 (1)']
   tag 'host'
 
-  rsyslog_check = command("grep -ih -E '^\\$ActionSendStreamDriverMode' /etc/rsyslog.conf /etc/rsyslog.d/*.conf").stdout
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
-  rsyslog_parse = parse_config(rsyslog_check, { assignment_regex: /(^\S+)\s+(\w+)/ })
-  
-  describe rsyslog_parse do
-    its('$ActionSendStreamDriverMode') { should cmp input('action_send_stream_driver_mode') }
+  if input('alternative_logging_method').to_s.empty?
+    rsyslog_directives = input('logging_conf_files')
+      .select { |path| file(path).exist? }
+      .flat_map { |path| file(path).content.lines }
+      .map(&:chomp)
+      .reject { |line| line.strip.empty? || line.strip.start_with?('#') }
+      .join("\n")
+
+    parsed_directives = parse_config(rsyslog_directives, assignment_regex: /^\s*(\$\S+)\s+(\S+)/)
+
+    describe 'rsyslog $ActionSendStreamDriverMode (TLS transport encryption)' do
+      subject { parsed_directives['$ActionSendStreamDriverMode'] }
+      it { should cmp input('action_send_stream_driver_mode') }
+    end
+  else
+    describe 'rsyslog audit log transport (manual review)' do
+      skip "input('alternative_logging_method') is set to '#{input('alternative_logging_method')}'; ask the administrator to confirm how rsyslog encrypts off-loaded audit records."
+    end
   end
 end

@@ -39,10 +39,12 @@ $ sudo chgrp ${GROUP} /var/log/audit)
   tag cci: ['CCI-001314']
   tag nist: ['SI-11 b']
   tag 'host'
-  tag 'container'
 
-  describe directory('/var/log') do
-    it { should exist }
-    its('group') { should eq 'root' }
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
+
+  describe file(auditd_conf('/etc/audit/auditd.conf').log_file) do
+    its('group') { should be_in input('var_log_audit_group') }
   end
 end

@@ -4,7 +4,6 @@
 # (boot loader, FIPS, physical protections, etc.), so the relevant
 # environmental flags are set here for the scan.
 
-disable_slow_controls: false
 data_at_rest_exempt: false
 smart_card_enabled: false
 external_firewall: false

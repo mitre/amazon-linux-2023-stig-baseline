@@ -34,7 +34,7 @@ unlock_time = 0'
     end
   else
     describe parse_config_file(input('security_faillock_conf')) do
-      its('fail_interval') { should cmp >= input('fail_interval') }
+      its('unlock_time') { should cmp input('unlock_time') }
     end
   end
 end
