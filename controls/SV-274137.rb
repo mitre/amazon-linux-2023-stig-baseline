@@ -28,7 +28,10 @@ Remove any configurations that conflict with the above value.'
   tag cci: ['CCI-000205', 'CCI-004066', 'CCI-004064']
   tag nist: ['IA-5 (1) (a)', 'IA-5 (1) (h)', 'IA-5 (1) (f)']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   setting = 'minlen'
   expected_min = input('pass_min_len')

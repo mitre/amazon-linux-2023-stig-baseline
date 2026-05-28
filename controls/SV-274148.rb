@@ -21,11 +21,14 @@ $ sudo chage -M 60 [user]'
   tag cci: ['CCI-000199', 'CCI-004066']
   tag nist: ['IA-5 (1) (d)', 'IA-5 (1) (h)']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   expected_maxdays = input('pass_max_days')
 
-  bad_users = users.where { uid >= 1000 }.where { maxdays > expected_maxdays || maxdays.negative? }.usernames
+  bad_users = users.where { uid >= 1000 }.where { maxdays.negative? || maxdays > expected_maxdays }.usernames
   in_scope_users = bad_users - input('exempt_home_users')
 
   describe 'Interactive users' do

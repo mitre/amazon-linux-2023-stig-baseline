@@ -22,7 +22,10 @@ PASS_MIN_DAYS 1'
   tag cci: ['CCI-000198', 'CCI-004066']
   tag nist: ['IA-5 (1) (d)', 'IA-5 (1) (h)']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   # TODO: add inputs for a frequecny
 

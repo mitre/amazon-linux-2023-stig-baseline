@@ -27,7 +27,10 @@ $ sudo chage -E $(date -d +3days +%Y-%m-%d) <temporary_account_name>'
   tag cci: ['CCI-001682', 'CCI-000016']
   tag nist: ['AC-2 (2)']
   tag 'host'
-  tag 'container'
+
+  only_if('This control is Not Applicable to containers', impact: 0.0) {
+    !virtualization.system.eql?('docker')
+  }
 
   # NOTE: SV-274146 is extremely similar; both consume the same inputs.
   tmp_users = input('temporary_accounts')
