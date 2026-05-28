@@ -87,3 +87,8 @@ kitchen.local.ec2.yml
 .beads/recovery-context.md
 .beads/recovery-prompt.md
 .beads/archive/
+
+# SAF delta provenance — kept locally for study, intentionally not released
+delta-provenance/
+SAF-DELTA-FEEDBACK.md
+saf-delta-cli-improvement-themes.md
