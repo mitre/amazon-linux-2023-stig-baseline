@@ -46,8 +46,7 @@ URL=https://[server.domain]:[port]'
 
       %w[URL ServerKeyFile ServerCertificateFile TrustedCertificateFile].each do |key|
         describe "journal-upload.conf [Upload] #{key}" do
-          subject { upload_section[key] }
-          it { should_not be_nil }
+          subject { upload_section[key].to_s }
           it { should_not be_empty }
         end
       end
