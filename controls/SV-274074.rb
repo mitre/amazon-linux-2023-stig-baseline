@@ -30,7 +30,7 @@ The audit daemon must be restarted for changes to take effect.'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   admin_space_left_action = input('admin_space_left_action').upcase

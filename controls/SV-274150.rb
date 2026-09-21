@@ -29,7 +29,7 @@ $ sudo chage -E $(date -d +3days +%Y-%m-%d) <temporary_account_name>'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   # NOTE: SV-274146 is extremely similar; both consume the same inputs.

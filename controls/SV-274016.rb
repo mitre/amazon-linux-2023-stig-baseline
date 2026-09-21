@@ -25,7 +25,7 @@ $ sudo sed -i '/NOPASSWD/ s/^/# /g' /etc/sudoers /etc/sudoers.d/*)
   tag 'host'
 
   only_if('This control is Not Applicable to containers without sudo installed', impact: 0.0) {
-    !(virtualization.system.eql?('docker') && !command('sudo').exist?)
+    !(virtualization.container_system? && !command('sudo').exist?)
   }
 
   bad_sudoers_rules = sudoers(input('sudoers_config_files').join(' ')).rules.where {

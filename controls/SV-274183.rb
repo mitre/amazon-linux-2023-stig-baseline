@@ -27,7 +27,7 @@ Look for the rate limiting settings: Scroll down to the "Rules" section. If rate
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe 'Manual review required' do

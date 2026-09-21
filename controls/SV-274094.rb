@@ -35,7 +35,7 @@ $ sudo augenrules --load'
   audit_syscalls = ['rename', 'unlink', 'rmdir', 'renameat', 'unlinkat']
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe 'Syscall' do

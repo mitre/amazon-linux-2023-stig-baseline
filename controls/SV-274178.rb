@@ -25,7 +25,7 @@ Modify "/etc/fstab" to use the "nosuid" option on the "/boot/efi" directory.'
   tag 'host'
 
   only_if('Control not applicable within a container', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   only_if('Control not applicable - system has no /boot/efi mount', impact: 0.0) {

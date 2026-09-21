@@ -30,7 +30,7 @@ A reboot is required for the changes to take effect.'
   tag 'host'
 
   only_if('Control not applicable within a container', impact: 0.0) do
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   end
 
   describe selinux do

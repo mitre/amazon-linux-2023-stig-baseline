@@ -22,7 +22,7 @@ Modify "/etc/fstab" to use the "nosuid" option on the "/dev/shm" file system.'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   path = '/dev/shm'

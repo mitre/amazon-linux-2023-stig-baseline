@@ -34,7 +34,7 @@ If the storage partition is not large enough for at least one week of audit logs
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   audit_log_dir = command("dirname #{auditd_conf.log_file}").stdout.strip

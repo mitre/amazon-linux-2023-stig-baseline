@@ -47,7 +47,7 @@ Note: Systemwide crypto policies are applied on application startup. It is recom
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   crypto_policies_dir = '/etc/crypto-policies/back-ends'

@@ -36,7 +36,7 @@ server <USNO/DOD Server> iburst maxpoll 16'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   chrony_conf = chrony_conf('/etc/chrony.conf')

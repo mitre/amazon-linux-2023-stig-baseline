@@ -23,7 +23,7 @@ Remove any occurrences of "pam_succeed_if " in the "/etc/pam.d/sudo" file.'
   tag 'host'
 
   only_if('Control not applicable within a container', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe file('/etc/pam.d/sudo') do

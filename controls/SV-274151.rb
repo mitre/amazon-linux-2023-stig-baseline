@@ -30,7 +30,7 @@ If necessary, create a "wheel" group and add administrative users to the group.)
   tag 'host'
 
   only_if('Control not applicable within a container', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe pam('/etc/pam.d/su') do

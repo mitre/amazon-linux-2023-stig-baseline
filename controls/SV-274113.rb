@@ -31,7 +31,7 @@ $ sudo augenrules --load'
   # Note that this requirement seems to be duplicative with SV-274104 in the source STIG document as of V1R3
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   audit_command = '/etc/passwd'

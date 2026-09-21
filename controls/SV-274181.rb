@@ -26,7 +26,7 @@ $ sudo systemctl enable --now pcscd'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   only_if('MFA is not required on this system per documented ISSO/AO exemption', impact: 0.0) {
