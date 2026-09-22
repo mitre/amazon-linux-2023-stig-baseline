@@ -44,7 +44,7 @@ Add or update the following lines to "/etc/aide.conf", to protect the integrity 
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   audit_tools = %w[/usr/sbin/auditctl

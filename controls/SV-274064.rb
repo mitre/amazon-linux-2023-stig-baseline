@@ -30,7 +30,7 @@ $ sudo ssh-keygen -n [passphrase]'
   tag nist: ['IA-5 (2) (b)', 'IA-5 (2) (a) (1)']
   tag 'host'
 
-  if virtualization.system.eql?('docker')
+  if virtualization.container_system?
     impact 0.0
     describe 'N/A' do
       skip 'Control not applicable within a container'

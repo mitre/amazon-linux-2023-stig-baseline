@@ -20,7 +20,7 @@ If "dmesg" does not show "NX (Execute Disable) protection" active, this is a fin
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   # /proc/cpuinfo flags lines that are MISSING 'nx' (each CPU prints its own line)

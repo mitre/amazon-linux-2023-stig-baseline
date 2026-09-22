@@ -22,7 +22,7 @@ Migrate the system audit data path onto a separate partition.'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   audit_data_path = command("dirname #{auditd_conf.log_file}").stdout.strip

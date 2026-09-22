@@ -40,7 +40,7 @@ Reboot the system for the changes to take effect.'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe 'FIPS mode (fips-mode-setup --check)' do

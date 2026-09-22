@@ -23,7 +23,7 @@ $ sudo chage -M 60 [user]'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   expected_maxdays = input('pass_max_days')

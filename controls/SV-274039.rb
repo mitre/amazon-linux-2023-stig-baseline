@@ -25,7 +25,7 @@ $ sudo systemctl enable --now sshd'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe systemd_service('sshd.service') do

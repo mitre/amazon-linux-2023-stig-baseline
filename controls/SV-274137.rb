@@ -30,7 +30,7 @@ Remove any configurations that conflict with the above value.'
   tag 'host'
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   setting = 'minlen'

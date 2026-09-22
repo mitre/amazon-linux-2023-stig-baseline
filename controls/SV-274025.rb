@@ -107,7 +107,7 @@ $ sudo systemctl --now enable aide.timer'
   file_integrity_tool = input('file_integrity_tool')
 
   only_if('Control not applicable within a container', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe package(file_integrity_tool) do

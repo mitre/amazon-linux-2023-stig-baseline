@@ -39,7 +39,7 @@ $ sudo augenrules --load'
   audit_syscalls = ['setxattr', 'fsetxattr', 'lsetxattr', 'removexattr', 'fremovexattr', 'lremovexattr']
 
   only_if('This control is Not Applicable to containers', impact: 0.0) {
-    !virtualization.system.eql?('docker')
+    !virtualization.container_system?
   }
 
   describe 'Syscall' do
