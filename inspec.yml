@@ -7,7 +7,7 @@ license: Apache-2.0
 summary: InSpec profile aligned to STIG Guidance for Amazon Linux 2023 Security
   Technical Implementation Guide
 description: null
-version: 1.3.0
+version: 1.3.1
 supports:
   - platform-name: amazon
     release: 2023.*
