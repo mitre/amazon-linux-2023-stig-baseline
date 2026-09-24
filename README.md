@@ -3,7 +3,7 @@ This InSpec Profile was created to facilitate testing and auditing of `Amazon Li
 infrastructure and applications when validating compliancy with [Department of Defense (DoD) STIG](https://public.cyber.mil/stigs/)
 requirements.
 
-- Profile Version: **1.3.0**
+- Profile Version: **1.3.2**
 - Benchmark Date: **01 Apr 2026**
 - Benchmark Version: **Version 1 Release 3 (V1R3)**
 
